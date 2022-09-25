@@ -1,4 +1,5 @@
 #include "memory_pool.h"
+#include "tree.h"
 
 #include <iostream>
 #include <fstream>
@@ -6,6 +7,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <string>
+
 
 using namespace std;
 
@@ -35,6 +38,35 @@ int main()
       cin.clear();
     }
   }
+
+    // create the stream redirection stuff 
+  streambuf *coutbuf = std::cout.rdbuf(); //save old buffer
+
+
+  // save experiment1 logging
+  ofstream out1("../results/experiment1_" + to_string(BLOCKSIZE) + "MB.txt");
+  std::cout.rdbuf(out1.rdbuf());           //redirect std::cout to filename.txt!
+
+
+  // Create memory pools for the disk and the index, total 500MB
+  // The split is determined empirically. We split so that we can have a contiguous disk address space for records
+  std::cout << "creating the disk on the stack for records, index" << endl;
+  
+  MemoryPool index(350*(pow(10,6)), BLOCKSIZE); // 350MB
+  MemoryPool disk(150*(pow(10,6)), BLOCKSIZE);  // 150MB
+  
+
+  // Creating the tree 
+  BPlusTree tree = BPlusTree(BLOCKSIZE, &disk, &index);
+
+
+  std::cout << "Max keys for a B+ tree node: " << tree.getMaxKeys() << endl;
+
+  // Reset the number of blocks accessed to zero
+  // disk.resetBlocksAccessed();
+  // index.resetBlocksAccessed();
+  // std::cout << "Number of record blocks accessed in search operation reset to: 0" << endl;
+  // std::cout << "Number of index blocks accessed in search operation reset to: 0" << endl;    
 
   // MemoryPool(maxPoolSize, blockSize);
   // 1st param - maxPoolSize 500MB
@@ -76,9 +108,12 @@ int main()
 
       // checking if the record is inserted correctly by printing out record tconst
       Record check = *(Record *)(std::get<0>(record) + std::get<1>(record));
-      std :: cout << "get<0> record:" << std::get<0>(record) << '\n';
-      std :: cout << "get<1> record:" << std::get<1>(record) << '\n';
+      // std :: cout << "get<0> record:" << std::get<0>(record) << '\n';
+      // std :: cout << "get<1> record:" << std::get<1>(record) << '\n';
       std :: cout << check.tconst << '\n';
+
+      
+      std :: cout << "Inserted key: " << check.numVotes << " into the tree" << endl;
 
       // keep a running count
       recordNum += 1;

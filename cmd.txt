@@ -1,1 +1,1 @@
-g++ *.cpp -o output4
+g++ main.cpp b_plus_tree_insert.cpp b_plus_tree.cpp memory_pool.cpp b_plus_tree.h types.h b_plus_tree_utils.cpp b_plus_tree_display.cpp b_plus_tree_search.cpp b_plus_tree_remove.cpp -o output2.exe
