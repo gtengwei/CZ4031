@@ -9,3 +9,8 @@
 
 
 using namespace std;
+
+struct node {
+    //data
+    vector<int> keys;
+};
