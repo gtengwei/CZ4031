@@ -75,7 +75,7 @@ int main()
 
   // Open test data
   // test data so its only 300 records
-  std::ifstream file("../data/test_data.tsv");
+  std::ifstream file("../data/data.tsv");
 
   if (file.is_open())
   {
@@ -102,9 +102,9 @@ int main()
       // get<1> is the size of the record, aka offset
       memcpy(std::get<0>(record) + std::get<1>(record), &rec, sizeof(rec));
 
-      std :: cout << "Reading line " << recordNum << " of movie data" << '\n';
-      std :: cout << "Size of a record: " << sizeof(rec) << " bytes" << '\n';
-      std :: cout << "Inserted record " << recordNum << " at address: " << std::get<0>(record) + std::get<1>(record) << '\n';
+      // std :: cout << "Reading line " << recordNum << " of movie data" << '\n';
+      // std :: cout << "Size of a record: " << sizeof(rec) << " bytes" << '\n';
+      // std :: cout << "Inserted record " << recordNum << " at address: " << std::get<0>(record) + std::get<1>(record) << '\n';
 
       // checking if the record is inserted correctly by printing out record tconst
       Record check = *(Record *)(std::get<0>(record) + std::get<1>(record));

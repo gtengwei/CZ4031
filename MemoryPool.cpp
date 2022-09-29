@@ -6,10 +6,12 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
+#include <math.h>
+
 #include "Tree.cpp"
 #include "Disk.cpp"
 
-class Database {
+class MemoryPool {
     private:
         string filename; //tsv data we want to import
         Disk * disk; //for now 3 for testing
@@ -33,7 +35,7 @@ class Database {
         }
 
     public:
-        Database(string filename, int numBytes){
+        MemoryPool(string filename, int numBytes){
             this->filename= filename;
             int numKeys = numberOfKeysInBplusTree(numBytes);
             this->btree = new bTree(numKeys);
@@ -44,27 +46,27 @@ class Database {
         //Experiment 1: Store the data and report the following statistics:
         //- the number of blocks
         //- the size of database (in terms of MB)
-        void addAllRecordsWithNoIndex(){
+        void insertRecords(int BLOCKSIZE){
             //read file
             ifstream file(this->filename);
             //read each line from the tsv file
             string line;
             int i = 0;
             while (getline (file, line)) {
-                if (i==0){ //ignore header
-                    i++;
-                    continue;
-                }
+                // if (i==0){ //ignore header
+                //     i++;
+                //     continue;
+                // }
                 this->disk->insert(line); //add tuple to disk
             }
             file.close();
             //number of blocks output
-            int numBlocks = disk->getTotalBlocks();
+            int numBlocks = disk->getTotalNumberOfBlocks();
             cout << "Total Number of Blocks: " << numBlocks <<"\n";
             //the size of database (in terms of MB)
-            int blocksize = disk->getBlockSizeinByte();
-            // cout<<"the block size is "<<blocksize;
-            float mb = (float(numBlocks * blocksize) / float(1024*1024));
+            // int blocksize = disk->getBlockSizeinByte();
+            cout<<"Block size: "<< BLOCKSIZE << "\n";
+            float mb = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
             cout <<  "Size of database (in terms of MB): " << mb << "\n";
         }
 
@@ -214,7 +216,7 @@ class Database {
         }
 
         void printBlocks(){
-            this->disk->printAllRecord();
+            this->disk->printRecords();
         }
 
         void printTree(){
@@ -247,7 +249,7 @@ class Database {
             cout<<endl;
         }
 
-    ~Database(){
+    ~MemoryPool(){
         free(disk);
         free(btree);
     }
