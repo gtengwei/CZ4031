@@ -78,7 +78,7 @@ class Disk
     void * insert(string s)
     {
         // insert at the end 
-        Record temp=Record(s);
+        Record record = Record(s);
 
         // Commented out this part because it is not used
 
@@ -99,14 +99,18 @@ class Disk
         //     }
 
         // }
-        int recordId=blocks.back().add(temp);
+        int recordId=blocks.back().add(record);
          //cout<<"the record Id is "<<recordId<<"-------";
         if (recordId==-1)
         {
             // cout<<"disk overflow \n";
             blocks.push_back(Block(this->numBytes));
-            recordId=blocks.back().add(temp);
+            recordId=blocks.back().add(record);
         }
+        cout << "Record size: " << sizeof(record) << endl;
+        cout << "Tconst size: " << sizeof(record.tconst) << endl;
+        cout << "Rating size: " << sizeof(record.avgRating) << endl;
+        cout << "Votes size: " << sizeof(record.numVotes) << endl;
         //cout<<"inserting into "<<blocks.size()-1<<recordId;
         database.push_back(make_pair(blocks.size()-1,recordId));
         return &database.back();

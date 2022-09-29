@@ -27,7 +27,8 @@ class Block {
    }
 
    int add(Record a)
-   {    int temp1=lastPosition-(int)sizeof(a);
+   {   
+       int temp1=lastPosition-(int)sizeof(a);
        int temp2=numberSlot*sizeof(int);
        
        //cout << std::boolalpha;  

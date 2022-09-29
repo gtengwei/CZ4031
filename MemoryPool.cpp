@@ -57,6 +57,8 @@ class MemoryPool {
                 //     i++;
                 //     continue;
                 // }
+
+                // cout << "Size of a record: " << sizeof(line) << " bytes" << '\n';
                 this->disk->insert(line); //add tuple to disk
             }
             file.close();
@@ -66,8 +68,8 @@ class MemoryPool {
             //the size of database (in terms of MB)
             // int blocksize = disk->getBlockSizeinByte();
             cout<<"Block size: "<< BLOCKSIZE << "\n";
-            float mb = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
-            cout <<  "Size of database (in terms of MB): " << mb << "\n";
+            float database_size = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
+            cout <<  "Size of database (in terms of MB): " << database_size << "\n";
         }
 
         void addToDiskAndBplus(){
@@ -126,7 +128,7 @@ class MemoryPool {
                     disk->getBlock(x.first).print();
                 }
                 // cout<< "<"<<x.first<<","<<x.second<<">"<<",";
-                float temp=disk->getRecord(x.first,x.second).rating;
+                float temp=disk->getRecord(x.first,x.second).avgRating;
                 int temp2=disk->getRecord(x.first,x.second).numVotes;
                 allRatings.push_back(temp);
                 allnumVotes.push_back(temp2);
@@ -163,7 +165,7 @@ class MemoryPool {
                     cout << "Data block "<<counter<<":"<<endl;
                     disk->getBlock(x.first).print();
                 }
-                float temp=disk->getRecord(x.first,x.second).rating;
+                float temp=disk->getRecord(x.first,x.second).avgRating;
                 allRatings.push_back(temp);
                 int temp2=disk->getRecord(x.first,x.second).numVotes;
                 allnumVotes.push_back(temp2);
@@ -244,7 +246,7 @@ class MemoryPool {
             cout <<"|";
             for (int i=0;i<children.size();i++){
                 pair<int,int>* castedChild = (pair<int,int>*) children[i];
-                cout<<disk->getRecord(castedChild->first,castedChild->second).getNumVotes()<<"|";
+                cout<<disk->getRecord(castedChild->first,castedChild->second).NumberOfVotes()<<"|";
             }
             cout<<endl;
         }
