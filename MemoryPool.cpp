@@ -195,7 +195,9 @@ class MemoryPool {
             int mergeCount=0;
             for (int i=0;i<totalNumKeysToDelete;i++){
                 pair<int,int> * pair = btree->deleteOneKey(1000, &mergeCount);
-                merged_node_count= merged_node_count +mergeCount;
+                cout << "Deleting key: " << pair->first << " from block: " << pair->second << "\n";
+                merged_node_count= merged_node_count + mergeCount;
+                cout << "Merged node count: " << merged_node_count << "\n";
                 disk->deleteRecord(pair->first,pair->second);
             }
             cout << "Number of times that a node is deleted: "<<merged_node_count<<endl;

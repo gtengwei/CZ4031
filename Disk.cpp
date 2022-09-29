@@ -79,13 +79,13 @@ class Disk
     {
         // insert at the end 
         Record record = Record(s);
-        cout << "record " << record.toString() << endl;
+        // cout << "record " << record.toString() << endl;
         // Commented out this part because it is not used
 
         // while (unoccupiedblocks.size()>0)
         // {
         //     int i=*unoccupiedblocks.begin();
-        //     int recordIdTemp=blocks[i].add(temp);
+        //     int recordIdTemp=blocks[i].add(record);
         //     if (recordIdTemp==-1)
         //     {
         //         unoccupiedblocks.erase(i);
@@ -93,9 +93,9 @@ class Disk
         //     else
         //     {
         //         // insert record into database at the end
-        //         database.push_back(make_pair(i,recordIdTemp));
+        //         directory.push_back(make_pair(i,recordIdTemp));
         //         //cout<<"inserting into "<<i<<recordIdTemp;
-        //         return &database.back();
+        //         return &directory.back();
         //     }
 
         // }
@@ -107,10 +107,12 @@ class Disk
             blocks.push_back(Block(this->blockSize));
             recordId=blocks.back().add(record);
         }
-        cout << "Record size: " << sizeof(record) << endl;
-        cout << "Tconst size: " << sizeof(record.tconst) << endl;
-        cout << "Rating size: " << sizeof(record.avgRating) << endl;
-        cout << "Votes size: " << sizeof(record.numVotes) << endl;
+
+        // cout << "Record size: " << sizeof(record) << endl;
+        // cout << "Tconst size: " << sizeof(record.tconst) << endl;
+        // cout << "Rating size: " << sizeof(record.avgRating) << endl;
+        // cout << "Votes size: " << sizeof(record.numVotes) << endl;
+        // cout << "block: " << blocks.size() << endl;
         //cout<<"inserting into "<<blocks.size()-1<<recordId;
         directory.push_back(make_pair(blocks.size()-1,recordId));
         return &directory.back();

@@ -17,9 +17,9 @@ class Record {
     Record(string s){
     
     vector<string> tokens;
-    cout << "s before istringstream " << s << endl;
+    // cout << "s before istringstream " << s << endl;
     istringstream iss(s);
-    cout << "s after istringstream " << s << endl;
+    // cout << "s after istringstream " << s << endl;
 
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),

@@ -35,7 +35,7 @@ int main(){
 
     while (choice != 1 && choice != 2)
     {
-        cout <<"1. 100 BYTES"<<endl;
+        cout <<"1. 200 BYTES"<<endl;
         cout <<"2. 500 BYTES"<<endl;
         cin >> choice;
 
