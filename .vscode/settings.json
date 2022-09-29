@@ -1,0 +1,24 @@
+{
+    "C_Cpp.errorSquiggles": "Enabled",
+    "files.associations": {
+        "fstream": "cpp",
+        "xstring": "cpp",
+        "initializer_list": "cpp",
+        "list": "cpp",
+        "type_traits": "cpp",
+        "vector": "cpp",
+        "xutility": "cpp",
+        "iostream": "cpp",
+        "utility": "cpp",
+        "iterator": "cpp",
+        "memory": "cpp",
+        "xmemory": "cpp",
+        "ostream": "cpp",
+        "cmath": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "algorithm": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp"
+    }
+}
