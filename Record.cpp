@@ -17,8 +17,13 @@ class Record {
     Record(string s){
     
     vector<string> tokens;
+    cout << "s before istringstream " << s << endl;
     istringstream iss(s);
-    copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(tokens));
+    cout << "s after istringstream " << s << endl;
+
+    copy(istream_iterator<string>(iss),
+         istream_iterator<string>(),
+         back_inserter(tokens));
 
     strcpy(tconst, tokens[0].c_str());
     avgRating=stof(tokens[1]);
@@ -39,7 +44,7 @@ class Record {
 
     string toString(){
         ostringstream out;
-        out << this->tconst << "\t" << this->avgRating << "\t" << this->numVotes<<"\n";
+        out << this->tconst << " " << this->avgRating << " " << this->numVotes<<"\n";
         return out.str();
     }
 

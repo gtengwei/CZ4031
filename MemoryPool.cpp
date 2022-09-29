@@ -35,11 +35,11 @@ class MemoryPool {
         }
 
     public:
-        MemoryPool(string filename, int numBytes){
+        MemoryPool(string filename, int blockSize){
             this->filename= filename;
-            int numKeys = numberOfKeysInBplusTree(numBytes);
+            int numKeys = numberOfKeysInBplusTree(blockSize);
             this->btree = new bTree(numKeys);
-            this->disk = new Disk(numBytes);
+            this->disk = new Disk(blockSize);
         } 
 
         //For experiment 1:

@@ -41,7 +41,7 @@ int main(){
 
         if (choice == 1)
         {
-            BLOCKSIZE = 100;
+            BLOCKSIZE = 200;
         }
         else if (choice == 2)
         {

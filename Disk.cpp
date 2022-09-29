@@ -16,14 +16,14 @@ class Disk
 {
     public: 
     vector<Block> blocks;
-    list<pair<int,int> > database;
+    list<pair<int,int> > directory;
     unordered_set<int> unoccupiedblocks;
-    int numBytes;
+    int blockSize;
     
 
-    Disk (int numBytes){
-        this->numBytes = numBytes;
-        blocks.push_back(Block(this->numBytes));
+    Disk (int blockSize){
+        this->blockSize = blockSize;
+        blocks.push_back(Block(this->blockSize));
 
     }
 
@@ -46,7 +46,7 @@ class Disk
         // assume the blockid and recordid are correct
         blocks[blockid].deleteSlot(recordid);
         unoccupiedblocks.insert(blockid);
-        database.remove(make_pair(blockid,recordid));
+        directory.remove(make_pair(blockid,recordid));
 
     }
 
@@ -79,7 +79,7 @@ class Disk
     {
         // insert at the end 
         Record record = Record(s);
-
+        cout << "record " << record.toString() << endl;
         // Commented out this part because it is not used
 
         // while (unoccupiedblocks.size()>0)
@@ -104,7 +104,7 @@ class Disk
         if (recordId==-1)
         {
             // cout<<"disk overflow \n";
-            blocks.push_back(Block(this->numBytes));
+            blocks.push_back(Block(this->blockSize));
             recordId=blocks.back().add(record);
         }
         cout << "Record size: " << sizeof(record) << endl;
@@ -112,8 +112,8 @@ class Disk
         cout << "Rating size: " << sizeof(record.avgRating) << endl;
         cout << "Votes size: " << sizeof(record.numVotes) << endl;
         //cout<<"inserting into "<<blocks.size()-1<<recordId;
-        database.push_back(make_pair(blocks.size()-1,recordId));
-        return &database.back();
+        directory.push_back(make_pair(blocks.size()-1,recordId));
+        return &directory.back();
     }
 
     void printRecords()
