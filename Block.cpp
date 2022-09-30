@@ -15,7 +15,7 @@ class Block {
     int numberSlot;
     int lastPosition;
     int size;
-    char* m;
+    char *m;
 
 
 
@@ -39,9 +39,10 @@ class Block {
        // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2)
        // Changing to temp1 < 0 means that we will have 10 records in the block
        // However, this will result in experiment 5 not working
-       if (temp1 < 0) {
+       if (temp1 < temp2) {
         //    cout<<"block overflow \n";
-           return -1;}
+           return -1;
+        }
        int newSlotId=0;
         while (newSlotId<numberSlot && *((int *)(m+4*newSlotId))!=0)      // find the empty one 
            {
@@ -69,10 +70,28 @@ class Block {
 
    void deleteSlot(int slotId)
    {    
-    int oldLastposition=*((int *)(m+4*slotId));
+    cout<<"slot Id: "<<slotId<<endl;
+    // cout<< "m:" << m << endl;
+    printf("m: %p\n", m);
+    printf("m: %d\n", *m);
 
+    // evalute m+4*slotId
+    printf("m+4*slotId: %s\n", m+4*slotId);
+
+    int oldLastposition=*((int*)(m + 4*slotId));
+
+    // TRACER: something is wrong with m
+    // could be because block[-2] something is reserved for /0?
+    // could be due to the fact that we are using a pointer to a char array
+    
+    // print done
+    cout<<"done1"<<endl;
+    cout<<"old last position: "<< oldLastposition<<endl;
     memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
+    
+    cout<<"done2"<<endl;
     lastPosition+=sizeof(Record);
+    cout<<"done3"<<endl;
         for(int i=slotId+1;i<numberSlot;i++)
         {
             int tempPosition=*((int *)(m+4*i));
@@ -80,6 +99,7 @@ class Block {
             if (tempPosition!=0) *((int *)(m+4*i))=tempPosition+sizeof(Record); // shift the slot reference by Record id.
             // new 
         }
+        cout<<"done4"<<endl;
        *((int *)(m+4*slotId))=0;
        //numberSlot-=1;
 
