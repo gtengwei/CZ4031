@@ -1,4 +1,4 @@
-// double linkedlist(directory)    containing page and record id
+// double linkedlist(database)    containing page and record id
 // blocks are vector of block
 // getBlock(int pageid)
 // insertBlock()
@@ -9,7 +9,7 @@
 #include "Block.cpp"
 #include <list>
 #include <iterator>
-# include <unordered_set>
+#include <unordered_set>
 // 
 using namespace std;
 class Disk
@@ -18,12 +18,12 @@ class Disk
     vector<Block> blocks;
     list<pair<int,int> > directory;
     unordered_set<int> unoccupiedblocks;
-    int numBytes;
+    int blockSize;
     
 
-    Disk (int numBytes){
-        this->numBytes = numBytes;
-        blocks.push_back(Block(this->numBytes));
+    Disk (int blockSize){
+        this->blockSize = blockSize;
+        blocks.push_back(Block(this->blockSize));
 
     }
 
@@ -58,53 +58,67 @@ class Disk
         // unoccupiedblocks.insert((*temp).first);
 
         // list<pair<int,int> >::iterator it( p );
-        // directory.erase(it);
+        // database.erase(it);
     }
 
-    int getTotalBlocks()
+    int getTotalNumberOfBlocks()
     {
         return blocks.size();
     }
 
-    int getBlockSizeinByte()
-    {
-        if (blocks.size()>0) return blocks.back().size;
-        else return 0;
-    }
+    // Commented out this part because it is not used
+    // int getBlockSizeinByte()
+    // {   
+    
+    //     // if (blocks.size()>0) return blocks.back().size;
+    //     // else return 0;
+    //     return blocks.back().size;
+    // }
 
     void * insert(string s)
     {
         // insert at the end 
-        Record temp=Record(s);
-        while (unoccupiedblocks.size()>0)
-        {
-            int i=*unoccupiedblocks.begin();
-            int recordIdTemp=blocks[i].add(temp);
-            if (recordIdTemp==-1)
-            {
-             unoccupiedblocks.erase(i);
-            }
-            else{
-                directory.push_back(make_pair(i,recordIdTemp));
-                // cout<<"inserting into "<<i<<recordIdTemp;
-                return &directory.back();
-            }
+        Record record = Record(s);
+        // cout << "record " << record.toString() << endl;
+        // Commented out this part because it is not used
 
-        }
-        int recordId=blocks.back().add(temp);
+        // while (unoccupiedblocks.size()>0)
+        // {
+        //     int i=*unoccupiedblocks.begin();
+        //     int recordIdTemp=blocks[i].add(record);
+        //     if (recordIdTemp==-1)
+        //     {
+        //         unoccupiedblocks.erase(i);
+        //     }
+        //     else
+        //     {
+        //         // insert record into database at the end
+        //         directory.push_back(make_pair(i,recordIdTemp));
+        //         //cout<<"inserting into "<<i<<recordIdTemp;
+        //         return &directory.back();
+        //     }
+
+        // }
+        int recordId=blocks.back().add(record);
          //cout<<"the record Id is "<<recordId<<"-------";
         if (recordId==-1)
         {
             // cout<<"disk overflow \n";
-            blocks.push_back(Block(this->numBytes));
-            recordId=blocks.back().add(temp);
+            blocks.push_back(Block(this->blockSize));
+            recordId=blocks.back().add(record);
         }
+
+        // cout << "Record size: " << sizeof(record) << endl;
+        // cout << "Tconst size: " << sizeof(record.tconst) << endl;
+        // cout << "Rating size: " << sizeof(record.avgRating) << endl;
+        // cout << "Votes size: " << sizeof(record.numVotes) << endl;
+        // cout << "block: " << blocks.size() << endl;
         //cout<<"inserting into "<<blocks.size()-1<<recordId;
         directory.push_back(make_pair(blocks.size()-1,recordId));
         return &directory.back();
     }
 
-    void printAllRecord()
+    void printRecords()
     {
         cout<<"size of blocks is "<<blocks.size()<<endl;
         for(int i=0;i<blocks.size();i++)

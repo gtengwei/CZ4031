@@ -22,36 +22,43 @@ class Block {
    Block (int x) : m(new char[x-2]){
        size=x;
        numberSlot=0;
-       lastPosition=x-2;
+       lastPosition=x;
+    //    lastPosition = x-2;
 
    }
 
    int add(Record a)
-   {    int temp1=lastPosition-(int)sizeof(a);
+   {   
+       int temp1=lastPosition-(int)sizeof(a);
        int temp2=numberSlot*sizeof(int);
        
        //cout << std::boolalpha;  
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
        //if ((lastPosition-(int)sizeof(a)) < numberSlot*sizeof(int)) { cout<<"overrrrrrrrrrflow";return -1;   }              // overflow, not possible to add more
-       if (temp1<temp2) {
+       
+       // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2)
+       // Changing to temp1 < 0 means that we will have 10 records in the block
+       // However, this will result in experiment 5 not working
+       if (temp1 < 0) {
         //    cout<<"block overflow \n";
            return -1;}
-       int newslotId=0;
-        while (newslotId<numberSlot && *((int *)(m+4*newslotId))!=0)      // find the empty one 
-           {newslotId+=1;
+       int newSlotId=0;
+        while (newSlotId<numberSlot && *((int *)(m+4*newSlotId))!=0)      // find the empty one 
+           {
+            newSlotId+=1;
            }
         //cout<<newslotId<<",,,,";
            
        memcpy(m+lastPosition-sizeof(a),&a,sizeof(a));
        lastPosition-=sizeof(a);
        //cout<<"last position is "<< lastPosition;
-       memcpy(m+4*newslotId,&lastPosition,sizeof(lastPosition));
+       memcpy(m+4*newSlotId,&lastPosition,sizeof(lastPosition));
        //*((int *)(m+4*numberSlot)) = lastPosition;
        //
        //*((int *)(m+4*numberSlot)) = lastPosition;
        //m[numberSlot-1]=lastPosition;
-       if (!(newslotId<numberSlot)) numberSlot+=1;
-       return newslotId;
+       if (!(newSlotId<numberSlot)) numberSlot+=1;
+       return newSlotId;
    }
 
    Record getRecord(int slotId)
@@ -61,10 +68,11 @@ class Block {
    }
 
    void deleteSlot(int slotId)
-   {    int oldLastposition=*((int *)(m+4*slotId));
+   {    
+    int oldLastposition=*((int *)(m+4*slotId));
 
-   memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
-   lastPosition+=sizeof(Record);
+    memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
+    lastPosition+=sizeof(Record);
         for(int i=slotId+1;i<numberSlot;i++)
         {
             int tempPosition=*((int *)(m+4*i));

@@ -11,37 +11,42 @@ using namespace std;
 class Record {       
     public:             
         char tconst[11];     // 10+1
-        float rating;
+        float avgRating;
         int numVotes;
 
     Record(string s){
     
     vector<string> tokens;
+    // cout << "s before istringstream " << s << endl;
     istringstream iss(s);
-    copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(tokens));
+    // cout << "s after istringstream " << s << endl;
+
+    copy(istream_iterator<string>(iss),
+         istream_iterator<string>(),
+         back_inserter(tokens));
 
     strcpy(tconst, tokens[0].c_str());
-    rating=stof(tokens[1]);
+    avgRating=stof(tokens[1]);
     numVotes=stoi(tokens[2]);
 
     }
-    string getTconst(){
+    string Tconst(){
             return this->tconst;
         }
 
-        double Rating(){
-            return this->rating;
-        }
+    double AvgRating(){
+        return this->avgRating;
+    }
 
-        int getNumVotes(){
-            return this->numVotes;
-        }
+    int NumberOfVotes(){
+        return this->numVotes;
+    }
 
-        string toString(){
-            ostringstream out;
-            out << this->tconst << "\t" << this->rating << "\t" << this->numVotes<<"\n";
-            return out.str();
-        }
+    string toString(){
+        ostringstream out;
+        out << this->tconst << " " << this->avgRating << " " << this->numVotes<<"\n";
+        return out.str();
+    }
 
 
         
