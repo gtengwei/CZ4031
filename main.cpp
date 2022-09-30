@@ -3,7 +3,7 @@
 #include "MemoryPool.cpp"
 
 int main(){
-    //100 is the number of bytes for a node
+    //200/500 is the number of bytes for a node
     //The number of keys in a node is calculated like this
     //floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
     bool terminate = false;
@@ -12,7 +12,7 @@ int main(){
     int choice_experiment = 0;
     
 
-    cout<<"==== start program===="<<endl;
+    cout<<"==== Starting Program ===="<<endl;
     std :: cout <<"Choose your block size: "<<endl;
     
     while (terminate == false){
@@ -92,7 +92,7 @@ int main(){
                 terminate = true;
                 break;
             default:
-                cout << "Not coded yet";
+                cout << "Invalid choice"<<endl;
                 continue;
         }
         
