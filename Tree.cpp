@@ -538,6 +538,7 @@ class bTree
         Node * deleteNode(Node * node){
             numOfNodes--;
             free(node);
+            return NULL;
         }
 
         int getNumberOfNodes(){

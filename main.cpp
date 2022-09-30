@@ -28,9 +28,10 @@ int main(){
     //100 is the number of bytes for a node
     //The number of keys in a node is calculated like this
     //floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
-
-    int BLOCKSIZE = 0;
+    while(true){
+int BLOCKSIZE = 0;
     int choice = 0;
+    cout << "====== starting program ========"<<endl;
     std :: cout <<"Choose your block size: "<<endl;
 
     while (choice != 1 && choice != 2)
@@ -80,7 +81,7 @@ int main(){
             // database.printBlocks(); //for debugging
             break;
         case 2: 
-            cout << "Experiment 2: Build a B+ tree on the attribute \"numVotes\ for block size "<< BLOCKSIZE << " bytes\n";
+            cout << "Experiment 2: Build a B+ tree on the attribute \"numVotes\" for block size "<< BLOCKSIZE << " bytes\n";
             memorypool.addToDiskAndBplus();
             memorypool.experiment2();
             // database.printTree(); //for debugging
@@ -105,9 +106,11 @@ int main(){
             break;
         
         default:
-            cout << "Not coded yet";
+            cout << "Invalid choice. Please try again \n";
             break;
     }
+    }
+    
     
     return 0;
 }

@@ -48,18 +48,17 @@ class MemoryPool {
         //- the size of database (in terms of MB)
         void insertRecords(int BLOCKSIZE){
             //read file
+            int recordNum = 0;
             ifstream file(this->filename);
             //read each line from the tsv file
             string line;
             int i = 0;
             while (getline (file, line)) {
-                // if (i==0){ //ignore header
-                //     i++;
-                //     continue;
-                // }
-
-                // cout << "Size of a record: " << sizeof(line) << " bytes" << '\n';
+                            if (recordNum % 50000 == 0) {
+                cout << "Record " << recordNum << " Read" << endl;
+            }
                 this->disk->insert(line); //add tuple to disk
+                recordNum++;
             }
             file.close();
             //number of blocks output
@@ -73,12 +72,17 @@ class MemoryPool {
         }
 
         void addToDiskAndBplus(){
+            int recordNum = 0;
             //read file
             ifstream file(this->filename);
             int i = 0;
             //read each line from the tsv file
             string line;
             while (getline (file, line)) {
+
+                                            if (recordNum % 50000 == 0) {
+                cout << "Record " << recordNum << " Read" << endl;
+            }
                 if (i==0){ //ignore header
                     i++;
                     continue;
@@ -86,6 +90,7 @@ class MemoryPool {
                 void * pointer = this->disk->insert(line);
                 int key = stoi(split(line)[2]);
                 this->btree->insertToBTree(key,pointer);
+                recordNum++;
             }
             file.close();
         }
@@ -184,30 +189,38 @@ class MemoryPool {
             cout<<"Average of \"averageRatings\" of the records: "<<SUM/allRatings.size()<<endl;
         }
 
-        //Experiment 5: delete those movies with the attribute “numVotes” equal to1,000, update the B+ tree accordingly, and report the following statistics:
-        // -the number of times that a node is deleted (or two nodes are merged)during the process of the updating the B+ tree
+        //Experiment 5: Delete all records with numberOfVote = 1000
         // -the number nodes of the updated B+ tree
+        // -the number of deleted/merged nodes
         // -the height of the updated B+ tree
         // -the content of the root node and its 1st child node of the updated B+tree
         void experiment5(){
+            
+            int NumPurgedNode = 0;
             int totalNumKeysToDelete = btree->getNumberOfKeysToDelete(1000);
-            int merged_node_count = 0;
             int mergeCount=0;
+            cout << "Number of keys to be deleted: (occurence of NumVote=1000):" << totalNumKeysToDelete << "\n";
+            
+            // repeatedly delete the key until all keys are deleted
             for (int i=0;i<totalNumKeysToDelete;i++){
                 pair<int,int> * pair = btree->deleteOneKey(1000, &mergeCount);
-                cout << "Deleting key: " << pair->first << " from block: " << pair->second << "\n";
-                merged_node_count= merged_node_count + mergeCount;
-                cout << "Merged node count: " << merged_node_count << "\n";
+                // cout << "Deleting key: " << pair->first << " from block: " << pair->second << "\n";
+                NumPurgedNode= NumPurgedNode + mergeCount;
+                // cout << "Merged node count: " << merged_node_count << "\n";
                 disk->deleteRecord(pair->first,pair->second);
             }
-            cout << "Number of times that a node is deleted: "<<merged_node_count<<endl;
-            cout << "Number of nodes in updated B+ tree: "<< btree->getNumberOfNodes()<<endl;
-            cout << "Height of the updated B+ tree:" << btree->getHeight()<<endl;
-            cout << "Content of the root node: " ;
+            cout << "Number of times that a node is deleted: "<<NumPurgedNode<<endl;
+            
+            cout << "Height of the new B+ tree:" << btree->getHeight()<<endl;
+            
+            cout << "Total nodes in new B+ tree: "<< btree->getNumberOfNodes()<<endl;
+
+            cout << "Key values inside root node:" ;
             btree->getRoot()->printAllKeys();
             cout << endl;
-            cout << "Content of first child node: ";
+            cout << "keys inside first child node (smallest value in db):"<<endl;
             ((Node *)btree->getRoot()->children[0])->printAllKeys();
+            cout << endl;
             cout << endl;
         }
 
