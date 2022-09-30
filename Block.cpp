@@ -70,13 +70,13 @@ class Block {
 
    void deleteSlot(int slotId)
    {    
-    cout<<"slot Id: "<<slotId<<endl;
+    // cout<<"slot Id: "<<slotId<<endl;
     // cout<< "m:" << m << endl;
-    printf("m: %p\n", m);
-    printf("m: %d\n", *m);
+    // printf("m: %p\n", m);
+    // printf("m: %d\n", *m);
 
     // evalute m+4*slotId
-    printf("m+4*slotId: %s\n", m+4*slotId);
+    // printf("m+4*slotId: %s\n", m+4*slotId);
 
     int oldLastposition=*((int*)(m + 4*slotId));
 
@@ -85,13 +85,13 @@ class Block {
     // could be due to the fact that we are using a pointer to a char array
     
     // print done
-    cout<<"done1"<<endl;
-    cout<<"old last position: "<< oldLastposition<<endl;
+    // cout<<"done1"<<endl;
+    // cout<<"old last position: "<< oldLastposition<<endl;
     memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
     
-    cout<<"done2"<<endl;
+    // cout<<"done2"<<endl;
     lastPosition+=sizeof(Record);
-    cout<<"done3"<<endl;
+    // cout<<"done3"<<endl;
         for(int i=slotId+1;i<numberSlot;i++)
         {
             int tempPosition=*((int *)(m+4*i));
@@ -99,12 +99,10 @@ class Block {
             if (tempPosition!=0) *((int *)(m+4*i))=tempPosition+sizeof(Record); // shift the slot reference by Record id.
             // new 
         }
-        cout<<"done4"<<endl;
+        // cout<<"done4"<<endl;
        *((int *)(m+4*slotId))=0;
        //numberSlot-=1;
-
    }
-
 
    void print()
    {
