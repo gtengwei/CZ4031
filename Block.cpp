@@ -33,7 +33,7 @@ class Block {
        //cout << std::boolalpha;  
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
        //if ((lastPosition-(int)sizeof(a)) < numberSlot*sizeof(int)) { cout<<"overrrrrrrrrrflow";return -1;   }              // overflow, not possible to add more
-       if (temp1<temp2) {
+       if (temp1<0) {
         //    cout<<"block overflow \n";
            return -1;}
        int newslotId=0;

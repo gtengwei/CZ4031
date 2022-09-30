@@ -19,6 +19,9 @@
         "xhash": "cpp",
         "algorithm": "cpp",
         "xiosbase": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "iosfwd": "cpp",
+        "array": "cpp",
+        "string_view": "cpp"
     }
 }
