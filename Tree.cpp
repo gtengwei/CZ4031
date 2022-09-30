@@ -575,14 +575,19 @@ class bTree
             int dataNodeNumber=0;
             cout<<"Content of top 5 index node: "<<endl;
 
+            //while current node is not leaf node
             while(!current_node->leaf)
             {
+                //increase leaf node number by 1, number of leaf nodes process accessed
                 indexNodeNumber+=1;
                 if (counterIndex>0){ //first 5
                     current_node->printAllKeys();
+                    //after print out 1 index node, decrease by index node count by 1
+                    counterIndex-=1;
                 }
-                if (counterIndex>0) {counterIndex-=1;}
+                //the upper bound of the keys in this layer
                 int childrenIndex=upper_bound(current_node->keys.begin(),current_node->keys.end(),numVotes)-current_node->keys.begin();
+                //new current node is the children of the selected index node
                 current_node=(Node* )current_node->children[childrenIndex];
             }
             cout<<"\nTotal number of index nodes: "<<indexNodeNumber<<endl;
@@ -590,51 +595,44 @@ class bTree
             // now reach leaf node
             // keep traversing to the left 23 33 33 33
             //current_node->printAllKeys();
-            
-            while(current_node!=NULL && current_node->keys[0]==numVotes)
+            bool condition = true;
+            while(condition)
             {
-                // current_node->printAllKeys();
-                current_node=current_node->previousLeaf;
-
+                if (current_node!=NULL && current_node->keys[0]==numVotes)
+                {current_node=current_node->previousLeaf;}
+                else{condition = false;}
             } 
             // cout<<"_________________________________________\n";
             
-
             // current_node->printAllKeys();
             // cout<<"debug______";
 
             // <999 999 999>   if the last element is not 1000, then current got to the next one
             if (current_node->keys.back()!=numVotes)
             {
-                current_node=current_node->nextLeaf;
+                Node * temp = current_node->nextLeaf;
+                current_node=temp;
             }
-
 
             while(current_node!=NULL && current_node->keys[0]<=numVotes)
             {
                 dataNodeNumber+=1;
                 if (counterData>0){
-                    // current_node->printAllKeys();
-                    // current_node->printAllChildren();
                     counterData-=1;
                 }
-
+                //iterate through the keys in the node
                 for (int i=0;i<current_node->getNumKeys();i++){
+                // if current key is the target key
                 if (current_node->keys[i]==numVotes)
-                
                 {  
                 pair<int,int> pointerToRecord = *(pair<int,int> *)current_node->children[i];
                 result.push_back(pointerToRecord);}
         }
-            current_node=current_node->nextLeaf;
+            Node * temp = current_node->nextLeaf;
+            current_node=temp;
             }
-
-            
-
             // cout<<"\nTotal number of data nodes: "<<dataNodeNumber<<endl;
             return result;
-
-
         }
 
 

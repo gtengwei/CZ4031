@@ -112,7 +112,7 @@ class Database {
             float SUM=0;
 
             vector<float> allRatings;
-            vector<float> allnumVotes;
+            vector<int> allnumVotes;
             // cout<<"Size of result: "<<result.size()<<"\n";
             cout<<"Content of top 5 data blocks accessed: "<<endl;
             int counter = 0;
@@ -123,9 +123,9 @@ class Database {
                     cout << "Data block "<<counter<<":"<<endl;
                     disk->getBlock(x.first).print();
                 }
-                // cout<< "<"<<x.first<<","<<x.second<<">"<<",";
-                float temp=disk->getRecord(x.first,x.second).rating;
-                int temp2=disk->getRecord(x.first,x.second).numVotes;
+                Record tempRec = disk->getRecord(x.first,x.second);
+                float temp=tempRec.rating;
+                int temp2=tempRec.numVotes;
                 allRatings.push_back(temp);
                 allnumVotes.push_back(temp2);
                 counter++;
@@ -133,15 +133,10 @@ class Database {
             // cout << endl;
             for(auto x: allRatings){
                 SUM+=x;
-                // cout <<x<<",";
             } 
-            // cout << endl;
-            // for(auto x: allnumVotes){
-            //     cout <<x<<",";
-            // }
-            // cout <<"sum:" << SUM<<endl;
-            cout<<"Number of data blocks accessed: "<<allRatings.size()<<"\n";
-            cout<<"Average of \"averageRating\"s of the records: "<<SUM/allRatings.size()<<"\n";
+            int ratingsSize = allRatings.size();
+            cout<<"Number of data blocks accessed: "<<ratingsSize<<"\n";
+            cout<<"Average of \"averageRating\"s of the records: "<<SUM/ratingsSize<<"\n";
         }
 
          void experiment4()
