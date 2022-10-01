@@ -47,31 +47,6 @@ class MemoryPool {
         //- the number of blocks
         //- the size of database (in terms of MB)
         void experiment1(int BLOCKSIZE){
-            // //read file
-            // ifstream file(this->filename);
-            // //read each line from the tsv file
-            // string line;
-            // int i = 0;
-            // int recordNum = 0;
-            // while (getline (file, line)) {
-            //     // checking data loading progress
-            //     if (recordNum % 50000 == 0) {
-            //         cout << "Record " << recordNum << " Read" << endl;
-            //     }
-            //     recordNum++;
-
-            //     // cout << "Size of a record: " << sizeof(line) << " bytes" << '\n';
-            //     this->disk->insert(line); //add tuple to disk
-            // }
-            // file.close();
-            // //number of blocks output
-            // int numBlocks = disk->getTotalNumberOfBlocks();
-            // cout << "Total Number of Blocks: " << numBlocks <<"\n";
-            // //the size of database (in terms of MB)
-            // // int blocksize = disk->getBlockSizeinByte();
-            // cout<<"Block size: "<< BLOCKSIZE << "\n";
-            // float database_size = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
-            // cout <<  "Size of database (in terms of MB): " << database_size << "\n";
             //read file
             ifstream file(this->filename);
             int i = 0;
@@ -117,15 +92,15 @@ class MemoryPool {
             string line;
             int recordNum = 0;
             while (getline (file, line)) {
+
                 // checking data loading progress
                 if (recordNum % 50000 == 0) {
                     cout << "Record " << recordNum << " Read" << endl;
                 }
-                recordNum++;
-                
                 void * pointer = this->disk->insert(line);
                 int key = stoi(split(line)[2]);
                 this->btree->insertToBTree(key,pointer);
+                recordNum++;
             }
             file.close();
         }
@@ -149,6 +124,39 @@ class MemoryPool {
             firstChild->printAllKeys();
             cout << "\n";
         }
+
+        // void experiment3()
+        // {
+        //     vector<pair<int,int> > result=btree->search(500);
+        //     float SUM=0;
+
+        //     vector<float> allRatings;
+        //     vector<int> allnumVotes;
+        //     // cout<<"Size of result: "<<result.size()<<"\n";
+        //     cout<<"Content of top 5 data blocks accessed: "<<endl;
+        //     int counter = 0;
+        //     for(auto x: result)
+        //     {
+        //         //print out the top 5 the datablocks
+        //         if (counter<5){
+        //             cout << "Data block "<<counter+1<<":"<<endl;
+        //             disk->getBlock(x.first).print();
+        //         }
+        //         Record tempRec = disk->getRecord(x.first,x.second);
+        //         float temp=tempRec.avgRating;
+        //         int temp2=tempRec.numVotes;
+        //         allRatings.push_back(temp);
+        //         allnumVotes.push_back(temp2);
+        //         counter++;
+        //     }
+        //     // cout << endl;
+        //     for(auto x: allRatings){
+        //         SUM+=x;
+        //     } 
+        //     int ratingsSize = allRatings.size();
+        //     cout<<"Number of data blocks accessed: "<<ratingsSize<<"\n";
+        //     cout<<"Average of \"averageRating\"s of the records: "<<SUM/ratingsSize<<"\n";
+        // }
 
         void experiment3()
         {
@@ -202,88 +210,123 @@ class MemoryPool {
             cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRatings/allRatings.size()<<endl;
         }
 
-         void experiment4()
+                   void experiment4()
         {
             vector<pair<int,int> > result=btree->searchRange(30000,40000);
 
-            float sumOfAvgRatings=0;
+            float sumOfAvgRating=0;
             int counter = 0;
 
             vector<float> allRatings;
             vector<float> allnumVotes;
-            vector<int> visited_block;
+            vector<int> visitedBlock;
             // cout<<"size of result is"<<result.size();
             for(auto x: result)
             {
-                //If block has been visited, proceed to next index_key pointer.
-                //All records in a block is read when block is accessed
-                if (find(visited_block.begin(), visited_block.end(), x.first) != visited_block.end()){
+                //If the block has been visited, move onto next key-pointer
+                //When a block gets visited, all the records within it is checked
+                if (find(visitedBlock.begin(), visitedBlock.end(), x.first) != visitedBlock.end()){
                     continue;
                 }
-
                 //Currently at unvisited data block
                 //Add pointer to visited_block for future reference
                 //Adding from the back, index[0] to [4] will be the first 5 data block to print
                 Block temp_block = disk->getBlock(x.first);
-                visited_block.push_back(x.first);
+                visitedBlock.push_back(x.first);
                 counter++;
 
                 //Iterate through records of entire data block.
                 //Only care about records with numVotes 30000<=x<=40000
                 for (int i = 0; i < temp_block.numberSlot; i++){
-                    if (temp_block.getRecord(i).numVotes>=30000 && temp_block.getRecord(i).numVotes<=40000){
-                        allRatings.push_back(disk->getRecord(x.first,x.second).avgRating);
-                        allnumVotes.push_back(disk->getRecord(x.first,x.second).numVotes);
-                    }
+                    if (temp_block.getRecord(i).numVotes>=30000 && temp_block.getRecord(i).numVotes<=40000)
+                    allRatings.push_back(temp_block.getRecord(i).avgRating);
+                    allnumVotes.push_back(temp_block.getRecord(i).numVotes);
                 }
             }
-
-            //Sum up AvgRatings to find average of AvgRatings
             for(auto avgRating: allRatings){
-                sumOfAvgRatings+=avgRating;
+                sumOfAvgRating+=avgRating;
+                // cout <<x<<",";
             } 
-
+            
             cout<<"First 5 Data Block Read:"<<endl;
             for (int i = 0; i < 5; i++){
                 cout<<"Data Block "<<to_string(i+1)<<endl;
                 cout<<string(10, '-')<<endl;
-                disk->getBlock(visited_block[i]).print();
+                disk->getBlock(visitedBlock[i]).print();
                 cout<<string(10, '-')<<endl;
-            }            
-            cout<<"Number of data blocks the process accesses: "<<counter<<endl;
-            cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRatings/allRatings.size()<<endl;
+            }  
+            cout<<"Number of data blocks the process accesses: "<<allRatings.size()<<endl;
+            cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRating/allRatings.size()<<endl;
         }
+        //  void experiment4()
+        // {
+        //     vector<pair<int,int> > result=btree->searchRange(30000,40000);
 
-        //Experiment 5: delete those movies with the attribute “numVotes” equal to1,000, update the B+ tree accordingly, and report the following statistics:
-        // -the number of times that a node is deleted (or two nodes are merged)during the process of the updating the B+ tree
-        // -the number nodes of the updated B+ tree
-        // -the height of the updated B+ tree
+        //     float SUM=0;
+        //     int counter = 0;
+
+        //     vector<float> allRatings;
+        //     vector<float> allnumVotes;
+        //     // cout<<"size of result is"<<result.size();
+        //     for(auto x: result)
+        //     {
+        //         //print out the top 5 the datablocks
+        //         if (counter<5){
+        //             cout << "Data block "<<counter+1<<":"<<endl;
+        //             disk->getBlock(x.first).print();
+        //         }
+        //         float temp=disk->getRecord(x.first,x.second).avgRating;
+        //         allRatings.push_back(temp);
+        //         int temp2=disk->getRecord(x.first,x.second).numVotes;
+        //         allnumVotes.push_back(temp2);
+        //         counter++;
+        //     }
+        //     for(auto x: allRatings){
+        //         SUM+=x;
+        //         // cout <<x<<",";
+        //     } 
+        //     // cout << endl;
+        //     // for(auto x: allnumVotes){
+        //     //     cout <<x<<",";
+        //     // }
+        //     // cout <<"sum:" << SUM<<endl;
+        //     cout<<"Number of data blocks the process accesses: "<<allRatings.size()<<endl;
+        //     cout<<"Average of \"averageRatings\" of the records: "<<SUM/allRatings.size()<<endl;
+        // }
+
+        //Experiment 5: delete those record with number of votes = 1000, report the folowing
+        // - how many nodes purged/deleted
+        // -the number nodes of the new B+ tree
+        // -the height of the new B+ tree
         // -the content of the root node and its 1st child node of the updated B+tree
         void experiment5(){
             int totalNumKeysToDelete = btree->getNumberOfKeysToDelete(1000);
-            int merged_node_count = 0;
+            int numOfPurgedNodes = 0;
             int mergeCount=0;
+            cout << "Number of keys to be deleted (occurence of numVotes=1000):" << totalNumKeysToDelete << "\n";
             for (int i=0;i<totalNumKeysToDelete;i++){
                 pair<int,int> * pair = btree->deleteOneKey(1000, &mergeCount);
-                cout << "Deleting key: " << pair->first << " from block: " << pair->second << "\n";
-                merged_node_count= merged_node_count + mergeCount;
-                cout << "Merged node count: " << merged_node_count << "\n";
+                // cout << "Deleting key: " << pair->first << " from block: " << pair->second << "\n";
+                numOfPurgedNodes= numOfPurgedNodes + mergeCount;
+                // cout << "Merged node count: " << numOfPurgedNodes << "\n";
                 disk->deleteRecord(pair->first,pair->second);
             }
-            cout << "Number of times that a node is deleted: "<<merged_node_count<<endl;
-            cout << "Number of nodes in updated B+ tree: "<< btree->getNumberOfNodes()<<endl;
-            cout << "Height of the updated B+ tree:" << btree->getHeight()<<endl;
-            cout << "Content of the root node: " ;
+            cout << "Number of times a node is deleted: "<<numOfPurgedNodes<<endl;
+            cout << "Number of nodes in new B+ tree: "<< btree->getNumberOfNodes()<<endl;
+            cout << "Height of the new B+ tree: " << btree->getHeight()<<endl;
+            cout << "Keys/Content of the root node: " ;
             btree->getRoot()->printAllKeys();
             cout << endl;
-            cout << "Content of first child node: ";
+            cout << "keys/Content of first child node (smallest value in db):";
             ((Node *)btree->getRoot()->children[0])->printAllKeys();
             cout << endl;
         }
 
         int numberOfKeysInBplusTree(int blockSize){
-            int numBytesPerKey = 4; //since it is an integer
-            int numBytesPerValue = 8; //8 bytes for a pointer in 64bit computer
+            // 4 bytes for an integer type
+            int numBytesPerKey = 4; 
+            // 8 bytes for a pointer in 64bit computer
+            int numBytesPerValue = 8; 
             //bytesUsed = numBytesPerKey * numKeys + numBytesPerValue * (numKeys+1);
             //So numKeys = floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue))
             return floor((blockSize-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));

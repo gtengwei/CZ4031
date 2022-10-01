@@ -105,11 +105,12 @@ class Block {
 
    void print()
    {
-       for(int i=lastPosition;i+sizeof(Record)<=size-2;i+=(sizeof(Record)))
-       {
-           Record temp= *(Record *) (m+i);
-           cout<<string(temp.tconst)<<endl;
-       }
+        cout << "tconst"<<endl;
+        for(int i=lastPosition;i+sizeof(Record)<=size-2;i+=(sizeof(Record)))
+        {
+            Record temp= *(Record *) (m+i);
+            cout<<string(temp.tconst)<<endl;
+        }
    }    
 
 };
