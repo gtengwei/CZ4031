@@ -27,26 +27,26 @@ class Disk
 
     }
 
-    void readBlock(int blockid)
+    void readBlock(int blockId)
     {
-        blocks[blockid].print();
+        blocks[blockId].print();
     }
-    void readRecord(int blockid,int recordid)
+    void readRecord(int blockId,int recordId)
     {
-        blocks[blockid].getRecord(recordid).toString();
+        blocks[blockId].getRecord(recordId).toString();
     }
-    Record getRecord(int blockid,int recordid)
+    Record getRecord(int blockId,int recordId)
     {
-        return blocks[blockid].getRecord(recordid);
+        return blocks[blockId].getRecord(recordId);
     }
 
-    void deleteRecord(int blockid, int recordid)
+    void deleteRecord(int blockId, int recordId)
     {
         // deletion is inefficient.
         // assume the blockid and recordid are correct
-        blocks[blockid].deleteSlot(recordid);
-        unoccupiedblocks.insert(blockid);
-        directory.remove(make_pair(blockid,recordid));
+        blocks[blockId].deleteSlot(recordId);
+        unoccupiedblocks.insert(blockId);
+        directory.remove(make_pair(blockId,recordId));
 
     }
 

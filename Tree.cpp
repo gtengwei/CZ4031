@@ -9,8 +9,6 @@
 
 using namespace std;
 
-// https://www.youtube.com/watch?v=kjBI0rimo-w&t=1401s&ab_channel=Mayopepeweezy
-// https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html
 struct Node
 {
 
@@ -153,7 +151,6 @@ class bTree
     private: 
         Node* _root;
         int degree;
-        int totalNode;
         int numOfNodes = 0;
     public:
         
@@ -162,7 +159,6 @@ class bTree
         {   
             _root=NULL;
             degree=n;
-            totalNode=0;
         }
 
         Node * getRoot()
@@ -688,8 +684,9 @@ class bTree
             // Stop travelling ONLY when the key value is more than upperbound.
             // Can have multiple keys with 40,000 numVotes
             //current_node->printAllKeys();
-            while(current_node!=NULL && current_node->keys[0]==numVotes && current_node->keys.back()!=numVotes)
+            while(current_node!=NULL && current_node->keys[0]==numVotes)
             {
+                indexNodeCounter+=1;
                 current_node=current_node->previousLeaf;
                 if (firstFiveIndexCounter<6){
                     firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
@@ -699,7 +696,7 @@ class bTree
             
             //Reach target leaf node. Now proceed to read data block
             int flag = 0;
-            while(current_node!=NULL && current_node->keys[0]<=numVotes)
+            while(current_node != NULL && current_node->keys[0] <= numVotes+1)
             {
                 dataBlockCounter+=1;
                 if (firstFiveDataCounter>0){
@@ -713,14 +710,14 @@ class bTree
                     if (current_node->keys[i]==numVotes){  
                         pair<int,int> pointerToRecord = *(pair<int,int> *)current_node->children[i];
                         result.push_back(pointerToRecord);
+                        
                     }
                 }
                 current_node=current_node->nextLeaf;
             }
-
+            cout << endl;
             cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
             cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
-
             // cout<<"\nTotal number of data nodes: "<<dataBlockCounter<<endl;
             return result;
         }
@@ -805,6 +802,7 @@ class bTree
             }
 
             //Hit desired index node. Should have parsed at least 5 index nodes by now
+            cout << endl;
             cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
             cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
             return result;
@@ -861,14 +859,6 @@ class bTree
                     Node * leftSibling = NULL; 
                     Node * rightSibling = NULL; 
                     
-                    // printNodeTree();
-                    // cout << "parentnumvalues" << parentNode->getNumValues()<<endl;
-                    // parentNode->printAllKeys();
-                    // cout <<endl;
-                    // cout << "currentnumvalues" << currentNode->getNumValues()<<endl;
-                    // currentNode->printAllKeys();
-                    // cout <<endl;
-
                     //Case 1: The current node is not too small (less than the mininum number of values)
                     if (currentNode->hasMininumValues()){ 
                         //no need to borrow or merge (just fix the indexes)  
@@ -1244,7 +1234,6 @@ class bTree
                 return currentNode;
             } 
             else{
-                // cout << "-nonleaf"<<endl;
                 int smallestLeafKeyOfRightSibling = smallestLeafKeyOfRightSubtree(rightSibling);
                 currentNode->keys[currentNode->getNumKeys()-1] = smallestLeafKeyOfRightSibling;
                 //add all right sibling keys and values into current node
@@ -1254,7 +1243,6 @@ class bTree
                 parentNode->eraseValue(indexOfRightSibling);
                 deleteNode(rightSibling);
                 //remove extra key
-                // parentNode->eraseKey(indexOfRightSibling-1);
                 return currentNode;
             }
 
@@ -1262,118 +1250,3 @@ class bTree
 
 
 };
-
-
-
-/*
-int main()
-{
-    pair<int,int> a= make_pair(1, 1);
-    pair<int,int> b= make_pair(1, 2);
-    pair<int,int> c= make_pair(1, 3);
-    pair<int,int> d= make_pair(1, 4);
-    bTree tree=bTree(3);
-
-    tree.insertToBTree(1,&a);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-    tree.insertToBTree(4,&a);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-    tree.insertToBTree(7,&b);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-    tree.insertToBTree(10,&b);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-    tree.insertToBTree(20,&b);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-    tree.insertToBTree(21,&b);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-    tree.insertToBTree(25,&b);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-    tree.insertToBTree(31,&c);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-
-    cout<<"deletion test now";
-
-    tree.deleteOneKey(4);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-        tree.deleteOneKey(10);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-    tree.deleteOneKey(20);
-    tree.printNodeTree();
-    tree.printLastRowReverse();
-    cout<<endl;
-
-
-
-    // tree.insertToBTree(14,&c);
-    // tree.printNodeTree();
-    // tree.printLastRowReverse();
-    // cout<<endl;
-
-
-
-
-
-// }
-*/
-
-// int main()
-// {
-//     pair<int,int> a= make_pair(1, 1);
-//     pair<int,int> b= make_pair(1, 2);
-//     pair<int,int> c= make_pair(1, 3);
-//     pair<int,int> d= make_pair(1, 4);
-//     bTree tree=bTree(4);
-
-//     for (int i=1;i<19;i++){
-//         tree.insertToBTree(i, &b);
-//     }
-//     tree.printNodeTree();
-//     // tree.printLastRowReverse();
-
-//     tree.deleteOneKey(12);
-//     tree.printNodeTree();
-//     // tree.printLastRowReverse();
-
-//     tree.deleteOneKey(15);
-//     tree.printNodeTree();
-//     // tree.printLastRowReverse();
-
-//     tree.deleteOneKey(16);
-//     tree.printNodeTree();
-
-//      tree.deleteOneKey(14);
-//     tree.printNodeTree();
-
-//     tree.deleteOneKey(13);
-//     tree.printNodeTree();
-
-//     tree.deleteOneKey(11);
-//     tree.printNodeTree();
-
-//     tree.deleteOneKey(10);
-//     tree.printNodeTree();
