@@ -113,75 +113,105 @@ class MemoryPool {
         void experiment3()
         {
             vector<pair<int,int> > result=btree->search(500);
-            float SUM=0;
+            
+            float sumOfAvgRatings=0;
+            int counter = 0;
 
             vector<float> allRatings;
             vector<float> allnumVotes;
-            // cout<<"Size of result: "<<result.size()<<"\n";
-            cout<<"Content of top 5 data blocks accessed: "<<endl;
-            int counter = 0;
+            vector<int> visited_block;
+            // cout<<"size of result is"<<result.size();
             for(auto x: result)
             {
-                //print out the top 5 the datablocks
-                if (counter<5){
-                    cout << "Data block "<<counter<<":"<<endl;
-                    disk->getBlock(x.first).print();
+                //If block has been visited, proceed to next index_key pointer.
+                //All records in a block is read when block is accessed
+                if (find(visited_block.begin(), visited_block.end(), x.first) != visited_block.end()){
+                    continue;
                 }
-                // cout<< "<"<<x.first<<","<<x.second<<">"<<",";
-                float temp=disk->getRecord(x.first,x.second).avgRating;
-                int temp2=disk->getRecord(x.first,x.second).numVotes;
-                allRatings.push_back(temp);
-                allnumVotes.push_back(temp2);
+
+                //Currently at unvisited data block
+                //Add pointer to visited_block for future reference
+                //Adding from the back, index[0] to [4] will be the first 5 data block to print
+                Block temp_block = disk->getBlock(x.first);
+                visited_block.push_back(x.first);
                 counter++;
+
+                //Iterate through records of entire data block.
+                //Only care about records with numVotes 30000<=x<=40000
+                for (int i = 0; i < temp_block.numberSlot; i++){
+                    if (temp_block.getRecord(i).numVotes==500){
+                        allRatings.push_back(disk->getRecord(x.first,x.second).avgRating);
+                        allnumVotes.push_back(disk->getRecord(x.first,x.second).numVotes);
+                    }
+                }
             }
-            // cout << endl;
-            for(auto x: allRatings){
-                SUM+=x;
-                // cout <<x<<",";
+
+            //Sum up AvgRatings to find average of AvgRatings
+            for(auto avgRating: allRatings){
+                sumOfAvgRatings+=avgRating;
             } 
-            // cout << endl;
-            // for(auto x: allnumVotes){
-            //     cout <<x<<",";
-            // }
-            // cout <<"sum:" << SUM<<endl;
-            cout<<"Number of data blocks accessed: "<<allRatings.size()<<"\n";
-            cout<<"Average of \"averageRating\"s of the records: "<<SUM/allRatings.size()<<"\n";
+
+            cout<<"First 5 Data Block Read:"<<endl;
+            for (int i = 0; i < 5; i++){
+                cout<<"Data Block "<<to_string(i+1)<<endl;
+                cout<<string(10, '-')<<endl;
+                disk->getBlock(visited_block[i]).print();
+                cout<<string(10, '-')<<endl;
+            }            
+            cout<<"Number of data blocks the process accesses: "<<counter<<endl;
+            cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRatings/allRatings.size()<<endl;
         }
 
          void experiment4()
         {
             vector<pair<int,int> > result=btree->searchRange(30000,40000);
 
-            float SUM=0;
+            float sumOfAvgRatings=0;
             int counter = 0;
 
             vector<float> allRatings;
             vector<float> allnumVotes;
+            vector<int> visited_block;
             // cout<<"size of result is"<<result.size();
             for(auto x: result)
             {
-                //print out the top 5 the datablocks
-                if (counter<5){
-                    cout << "Data block "<<counter<<":"<<endl;
-                    disk->getBlock(x.first).print();
+                //If block has been visited, proceed to next index_key pointer.
+                //All records in a block is read when block is accessed
+                if (find(visited_block.begin(), visited_block.end(), x.first) != visited_block.end()){
+                    continue;
                 }
-                float temp=disk->getRecord(x.first,x.second).avgRating;
-                allRatings.push_back(temp);
-                int temp2=disk->getRecord(x.first,x.second).numVotes;
-                allnumVotes.push_back(temp2);
+
+                //Currently at unvisited data block
+                //Add pointer to visited_block for future reference
+                //Adding from the back, index[0] to [4] will be the first 5 data block to print
+                Block temp_block = disk->getBlock(x.first);
+                visited_block.push_back(x.first);
                 counter++;
+
+                //Iterate through records of entire data block.
+                //Only care about records with numVotes 30000<=x<=40000
+                for (int i = 0; i < temp_block.numberSlot; i++){
+                    if (temp_block.getRecord(i).numVotes>=30000 && temp_block.getRecord(i).numVotes<=40000){
+                        allRatings.push_back(disk->getRecord(x.first,x.second).avgRating);
+                        allnumVotes.push_back(disk->getRecord(x.first,x.second).numVotes);
+                    }
+                }
             }
-            for(auto x: allRatings){
-                SUM+=x;
-                // cout <<x<<",";
+
+            //Sum up AvgRatings to find average of AvgRatings
+            for(auto avgRating: allRatings){
+                sumOfAvgRatings+=avgRating;
             } 
-            // cout << endl;
-            // for(auto x: allnumVotes){
-            //     cout <<x<<",";
-            // }
-            // cout <<"sum:" << SUM<<endl;
-            cout<<"Number of data blocks the process accesses: "<<allRatings.size()<<endl;
-            cout<<"Average of \"averageRatings\" of the records: "<<SUM/allRatings.size()<<endl;
+
+            cout<<"First 5 Data Block Read:"<<endl;
+            for (int i = 0; i < 5; i++){
+                cout<<"Data Block "<<to_string(i+1)<<endl;
+                cout<<string(10, '-')<<endl;
+                disk->getBlock(visited_block[i]).print();
+                cout<<string(10, '-')<<endl;
+            }            
+            cout<<"Number of data blocks the process accesses: "<<counter<<endl;
+            cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRatings/allRatings.size()<<endl;
         }
 
         //Experiment 5: delete those movies with the attribute “numVotes” equal to1,000, update the B+ tree accordingly, and report the following statistics:
