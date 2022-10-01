@@ -46,7 +46,7 @@ class MemoryPool {
         //Experiment 1: Store the data and report the following statistics:
         //- the number of blocks
         //- the size of database (in terms of MB)
-        void insertRecords(int BLOCKSIZE){
+        void experiment1(int BLOCKSIZE){
             //read file
             ifstream file(this->filename);
             //read each line from the tsv file
@@ -64,12 +64,12 @@ class MemoryPool {
             }
             file.close();
             //number of blocks output
-            int numBlocks = disk->getTotalNumberOfBlocks();
-            cout << "Total Number of Blocks: " << numBlocks <<"\n";
+            int numOfBlocks = disk->getTotalNumberOfBlocks();
+            cout << "Total Number of Blocks: " << numOfBlocks <<"\n";
             //the size of database (in terms of MB)
             // int blocksize = disk->getBlockSizeinByte();
             cout<<"Block size: "<< BLOCKSIZE << "\n";
-            float database_size = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
+            float database_size = (float(numOfBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
             cout <<  "Size of database (in terms of MB): " << database_size << "\n";
         }
 
@@ -81,13 +81,10 @@ class MemoryPool {
             string line;
             int recordNum = 0;
             while (getline (file, line)) {
-                if (i==0){ //ignore header
-                    i++;
-                    continue;
-                }
 
+                // checking data loading progress
                 if (recordNum % 50000 == 0) {
-                cout << "Record " << recordNum << " Read" << endl;
+                    cout << "Record " << recordNum << " Read" << endl;
                 }
                 void * pointer = this->disk->insert(line);
                 int key = stoi(split(line)[2]);
@@ -214,12 +211,14 @@ class MemoryPool {
             cout << endl;
         }
 
-        int numberOfKeysInBplusTree(int numBytes){
-            int numBytesPerKey = 4; //since it is an integer
-            int numBytesPerValue = 8; //8 bytes for a pointer in 64bit computer
+        int numberOfKeysInBplusTree(int blockSize){
+            // 4 bytes for an integer type
+            int numBytesPerKey = 4; 
+            // 8 bytes for a pointer in 64bit computer
+            int numBytesPerValue = 8; 
             //bytesUsed = numBytesPerKey * numKeys + numBytesPerValue * (numKeys+1);
             //So numKeys = floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue))
-            return floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
+            return floor((blockSize-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
         }
 
         void printBlocks(){

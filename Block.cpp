@@ -20,17 +20,16 @@ class Block {
 
 
    Block (int x) : m(new char[x-2]){
-       size=x;
-       numberSlot=0;
-       lastPosition=x;
-    //    lastPosition = x-2;
+       size = x;
+       numberSlot = 0;
+       lastPosition = x-2;
 
    }
 
    int add(Record a)
    {   
-       int temp1=lastPosition-(int)sizeof(a);
-       int temp2=numberSlot*sizeof(int);
+       int currentLastPosition=lastPosition-(int)sizeof(a);
+       int numOfSlots=numberSlot*sizeof(int);
        
        //cout << std::boolalpha;  
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
@@ -39,7 +38,7 @@ class Block {
        // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2)
        // Changing to temp1 < 0 means that we will have 10 records in the block
        // However, this will result in experiment 5 not working
-       if (temp1 < temp2) {
+       if (currentLastPosition < numOfSlots) {
         //    cout<<"block overflow \n";
            return -1;
         }

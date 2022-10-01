@@ -3,9 +3,9 @@
 #include "MemoryPool.cpp"
 
 int main(){
-    //200/500 is the number of bytes for a node
-    //The number of keys in a node is calculated like this
-    //floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
+    // 200/500 is the number of bytes for a node
+    // The number of keys in a node is calculated like this
+    // floor((blockSize-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
     bool terminate = false;
     int BLOCKSIZE = 0;
     int choice_BLOCKSIZE = 0;
@@ -18,6 +18,7 @@ int main(){
     while (terminate == false){
             cout <<"1. 200 BYTES"<<endl;
             cout <<"2. 500 BYTES"<<endl;
+            cout <<"3. Exit the program"<<endl;
             cin >> choice_BLOCKSIZE;
 
             if (choice_BLOCKSIZE == 1)
@@ -28,16 +29,23 @@ int main(){
             {
                 BLOCKSIZE = 500;
             }
+            else if (choice_BLOCKSIZE == 3)
+            {   
+                cout << "Exiting program..." << endl;
+                terminate = true;
+                break;
+            }
             else
             {
-            cout <<"Invalid choice. Please try again."<<endl;
-            cin.clear();
+                cout <<"Invalid input. Please try again."<<endl;
+                cin.clear();
+                continue;
             }
         
         MemoryPool memorypool("tsv_files/data.tsv",BLOCKSIZE);
 
         cout << "Current block size is " << BLOCKSIZE << " bytes" << endl;
-        cout << "View experiment result(1-5): \n";
+        cout << "View experiment result(1-5) for block size = " << BLOCKSIZE << " bytes: \n";
         cout << "1. Experiment 1: Store data in disk \n";
         cout << "2. Experiment 2: Build a B+ tree on the attribute \"numVotes\" \n";
         cout << "3. Experiment 3: Retrieve movies with attribute \"numVotes\" equal to 500 \n";
@@ -59,7 +67,7 @@ int main(){
         switch(choice_experiment){
             case 1:
                 cout << "Experiment 1: Store data in disk for block size "<< BLOCKSIZE << " bytes\n";
-                memorypool.insertRecords(BLOCKSIZE);
+                memorypool.experiment1(BLOCKSIZE);
                 // database.printBlocks(); //for debugging
                 continue;
             case 2: 
