@@ -47,11 +47,36 @@ class MemoryPool {
         //- the number of blocks
         //- the size of database (in terms of MB)
         void experiment1(int BLOCKSIZE){
+            // //read file
+            // ifstream file(this->filename);
+            // //read each line from the tsv file
+            // string line;
+            // int i = 0;
+            // int recordNum = 0;
+            // while (getline (file, line)) {
+            //     // checking data loading progress
+            //     if (recordNum % 50000 == 0) {
+            //         cout << "Record " << recordNum << " Read" << endl;
+            //     }
+            //     recordNum++;
+
+            //     // cout << "Size of a record: " << sizeof(line) << " bytes" << '\n';
+            //     this->disk->insert(line); //add tuple to disk
+            // }
+            // file.close();
+            // //number of blocks output
+            // int numBlocks = disk->getTotalNumberOfBlocks();
+            // cout << "Total Number of Blocks: " << numBlocks <<"\n";
+            // //the size of database (in terms of MB)
+            // // int blocksize = disk->getBlockSizeinByte();
+            // cout<<"Block size: "<< BLOCKSIZE << "\n";
+            // float database_size = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
+            // cout <<  "Size of database (in terms of MB): " << database_size << "\n";
             //read file
             ifstream file(this->filename);
+            int i = 0;
             //read each line from the tsv file
             string line;
-            int i = 0;
             int recordNum = 0;
             while (getline (file, line)) {
                 // checking data loading progress
@@ -59,19 +84,28 @@ class MemoryPool {
                     cout << "Record " << recordNum << " Read" << endl;
                 }
                 recordNum++;
-
-                // cout << "Size of a record: " << sizeof(line) << " bytes" << '\n';
-                this->disk->insert(line); //add tuple to disk
+                
+                void * pointer = this->disk->insert(line);
+                int key = stoi(split(line)[2]);
+                this->btree->insertToBTree(key,pointer);
             }
             file.close();
             //number of blocks output
-            int numBlocks = disk->getTotalNumberOfBlocks();
-            cout << "Total Number of Blocks: " << numBlocks <<"\n";
+            int numOfDataBlocks = disk->getTotalNumberOfBlocks();
+            int numOfIndexBlocks = btree->getNumberOfNodes();
+            cout << "Total Number of Blocks: " << numOfDataBlocks <<"\n";
+            cout << "Number Of Nodes in B+ Tree: " << numOfIndexBlocks <<"\n";
             //the size of database (in terms of MB)
             // int blocksize = disk->getBlockSizeinByte();
             cout<<"Block size: "<< BLOCKSIZE << "\n";
-            float database_size = (float(numBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
-            cout <<  "Size of database (in terms of MB): " << database_size << "\n";
+            float relationalData_size = (float(numOfDataBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
+            cout <<  "Size of relational data(in terms of MB): " << relationalData_size << "\n";
+
+            float btree_size = (float(numOfIndexBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
+            cout <<  "Size of B+ Tree(in terms of MB): " << btree_size << "\n";
+
+            float total_size = relationalData_size + btree_size;
+            cout <<  "Total Size of Database(in terms of MB): " << total_size << "\n";
         }
 
         void addToDiskAndBplus(){
