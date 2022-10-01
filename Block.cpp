@@ -35,7 +35,7 @@ class Block {
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
        //if ((lastPosition-(int)sizeof(a)) < numberSlot*sizeof(int)) { cout<<"overrrrrrrrrrflow";return -1;   }              // overflow, not possible to add more
        
-       // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2)
+       // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2 or temp1 == 20)
        // Changing to temp1 < 0 means that we will have 10 records in the block
        // However, this will result in experiment 5 not working
        if (currentLastPosition < numOfSlots) {

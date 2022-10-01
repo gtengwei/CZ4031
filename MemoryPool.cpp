@@ -38,6 +38,7 @@ class MemoryPool {
         MemoryPool(string filename, int blockSize){
             this->filename= filename;
             int numKeys = numberOfKeysInBplusTree(blockSize);
+            cout << "numKeys: " << numKeys << endl;
             this->btree = new bTree(numKeys);
             this->disk = new Disk(blockSize);
         } 
