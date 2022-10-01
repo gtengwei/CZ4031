@@ -610,7 +610,8 @@ class bTree
                 indexNodeCounter+=1;
                 current_node=current_node->previousLeaf;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
             }  
@@ -624,6 +625,11 @@ class bTree
                     // current_node->printAllKeys();
                     // current_node->printAllChildren();
                     firstFiveDataCounter-=1;
+                }
+                if (firstFiveIndexCounter<6){
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
+                    firstFiveIndexCounter+=1;
                 }
                 if (flag == 1){
                     indexNodeCounter+=1;
@@ -639,8 +645,9 @@ class bTree
                 current_node=current_node->nextLeaf;
             }
 
-            cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
-            cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
+            // cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
+            // cout<<"Content of first 5 index node: "<<endl<<firstfiveIndex[0]<<endl<<firstfiveIndex[1]<<firstfiveIndex[2]<<firstfiveIndex[3]<<firstfiveIndex[4];
+            // cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
 
             // cout<<"\nTotal number of data nodes: "<<dataBlockCounter<<endl;
             return result;
@@ -673,7 +680,8 @@ class bTree
                 //current_node->printAllKeys();
                 indexNodeCounter+=1;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
                 int childrenIndex=upper_bound(current_node->keys.begin(),current_node->keys.end(),lower)-current_node->keys.begin();
@@ -690,7 +698,8 @@ class bTree
                 indexNodeCounter+=1;
                 current_node=current_node->previousLeaf;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
 
@@ -705,6 +714,11 @@ class bTree
                 dataBlockCounter+=1;
                 if (firstFiveDataCounter>0){
                     firstFiveDataCounter-=1;
+                }
+                if (firstFiveIndexCounter<6){
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
+                    firstFiveIndexCounter+=1;
                 }
                 if (flag == 1){
                     indexNodeCounter+=1;
