@@ -18,6 +18,8 @@ in the command prompt terminal:
 If you used the guide, you should see the following output:  
 <b>g++ (Rev1, Built by MSYS2 project) 12.2.0</b>
 
-run the following command, to compile all files ending with .cpp, with output file named "output", then execute the output file  
+1. Run the following command, to compile all files ending with .cpp, with output file named "output":   
 <b>g++ *.cpp -o output</b>  
+  
+2. Execute the output file  
 <b>./output</b>  
