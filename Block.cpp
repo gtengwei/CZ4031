@@ -105,11 +105,24 @@ class Block {
 
    void print()
    {
-        // cout << "tconst"<<endl;
+       for(int i=0;i<numberSlot;i++)
+       {
+           int temp=*((int *)(m+4*i));
+           cout<<temp<<"|";
+       }
+
+       for(int i=numberSlot;i<lastPosition;i++)
+       {
+
+           cout<<".";
+       }
+
+        cout<<"\n";
+        cout << "tconst\taverageRating\tnumVotes"<<endl;
        for(int i=lastPosition;i+sizeof(Record)<=size-2;i+=(sizeof(Record)))
        {
            Record temp= *(Record *) (m+i);
-           cout<<string(temp.tconst)<<endl;
+           cout<<temp.toString();
        }
    }    
 
