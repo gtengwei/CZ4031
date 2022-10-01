@@ -70,6 +70,13 @@ public:
     return allocated;
   };
 
+  int resetBlocksAccessed()
+  {
+    int tempBlocksAccessed = blocksAccessed;
+    blocksAccessed = 0;
+    return tempBlocksAccessed;
+  }
+
   // Destructor
   ~MemoryPool();
 
@@ -81,7 +88,7 @@ private:
   std::size_t sizeUsed;       // Current size used up for storage (total block size).
   std::size_t actualSizeUsed; // Actual size used based on records stored in storage.
   std::size_t blockSizeUsed;  // Size used up within the curent block we are pointing to.
-
+  int blocksAccessed; // Counts number of blocks accessed.
   int allocated; // Number of currently allocated blocks.
 
   void *pool;  // Memory pool reference.
