@@ -113,7 +113,7 @@ class Disk
         // cout << "Rating size: " << sizeof(record.avgRating) << endl;
         // cout << "Votes size: " << sizeof(record.numVotes) << endl;
         // cout << "block: " << blocks.size() << endl;
-        //cout<<"inserting into "<<blocks.size()-1<<recordId;
+        // cout<<"inserting into "<<blocks.size()-1<<recordId;
         directory.push_back(make_pair(blocks.size()-1,recordId));
         return &directory.back();
     }

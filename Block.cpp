@@ -22,7 +22,7 @@ class Block {
    Block (int x) : m(new char[x-2]){
        size=x;
        numberSlot=0;
-       lastPosition=x;
+       lastPosition=x-2;
     //    lastPosition = x-2;
 
    }
@@ -31,15 +31,16 @@ class Block {
    {   
        int temp1=lastPosition-(int)sizeof(a);
        int temp2=numberSlot*sizeof(int);
-       
+    //    cout << "temp1: " << temp1 << endl;
        //cout << std::boolalpha;  
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
        //if ((lastPosition-(int)sizeof(a)) < numberSlot*sizeof(int)) { cout<<"overrrrrrrrrrflow";return -1;   }              // overflow, not possible to add more
        
-       // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2)
+       // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2 or temp1 == 20)
        // Changing to temp1 < 0 means that we will have 10 records in the block
        // However, this will result in experiment 5 not working
-       if (temp1 < 0) {
+       // Exp 3,4,5 requires 2 empty slots in the block
+       if (temp1 < temp2) {
         //    cout<<"block overflow \n";
            return -1;}
        int newSlotId=0;
@@ -69,7 +70,13 @@ class Block {
 
    void deleteSlot(int slotId)
    {    
+    cout << "Deleting slot " << slotId << endl;
+    cout << "m: " << m << endl;
+    cout << "m reference: " << &m << endl;
+    cout << "m+4*slotId: " << m+4*slotId << endl;
+
     int oldLastposition=*((int *)(m+4*slotId));
+    cout << "old last position is " << oldLastposition << endl;
 
     memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
     lastPosition+=sizeof(Record);

@@ -38,6 +38,7 @@ class MemoryPool {
         MemoryPool(string filename, int blockSize){
             this->filename= filename;
             int numKeys = numberOfKeysInBplusTree(blockSize);
+            cout << "numKeys: " << numKeys << endl;
             this->btree = new bTree(numKeys);
             this->disk = new Disk(blockSize);
         } 
@@ -79,11 +80,11 @@ class MemoryPool {
             //read each line from the tsv file
             string line;
             while (getline (file, line)) {
-                if (i==0){ //ignore header
-                    i++;
-                    continue;
-                }
-                void * pointer = this->disk->insert(line);
+                // if (i==0){ //ignore header
+                //     i++;
+                //     continue;
+                // }
+                void *pointer = this->disk->insert(line);
                 int key = stoi(split(line)[2]);
                 this->btree->insertToBTree(key,pointer);
             }
@@ -191,6 +192,7 @@ class MemoryPool {
         // -the content of the root node and its 1st child node of the updated B+tree
         void experiment5(){
             int totalNumKeysToDelete = btree->getNumberOfKeysToDelete(1000);
+            cout << "Total number of keys to delete: " << totalNumKeysToDelete << "\n";
             int merged_node_count = 0;
             int mergeCount=0;
             for (int i=0;i<totalNumKeysToDelete;i++){
@@ -211,12 +213,12 @@ class MemoryPool {
             cout << endl;
         }
 
-        int numberOfKeysInBplusTree(int numBytes){
+        int numberOfKeysInBplusTree(int blockSize){
             int numBytesPerKey = 4; //since it is an integer
             int numBytesPerValue = 8; //8 bytes for a pointer in 64bit computer
             //bytesUsed = numBytesPerKey * numKeys + numBytesPerValue * (numKeys+1);
             //So numKeys = floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue))
-            return floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
+            return floor((blockSize-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
         }
 
         void printBlocks(){
