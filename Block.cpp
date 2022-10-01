@@ -15,23 +15,22 @@ class Block {
     int numberSlot;
     int lastPosition;
     int size;
-    char* m;
+    char *m;
 
 
 
    Block (int x) : m(new char[x-2]){
-       size=x;
-       numberSlot=0;
-       lastPosition=x-2;
-    //    lastPosition = x-2;
+       size = x;
+       numberSlot = 0;
+       lastPosition = x-2;
 
    }
 
    int add(Record a)
    {   
-       int temp1=lastPosition-(int)sizeof(a);
-       int temp2=numberSlot*sizeof(int);
-    //    cout << "temp1: " << temp1 << endl;
+       int currentLastPosition=lastPosition-(int)sizeof(a);
+       int numOfSlots=numberSlot*sizeof(int);
+       
        //cout << std::boolalpha;  
        //cout<< ((lastPosition-(int)sizeof(a))< numberSlot*sizeof(int));
        //if ((lastPosition-(int)sizeof(a)) < numberSlot*sizeof(int)) { cout<<"overrrrrrrrrrflow";return -1;   }              // overflow, not possible to add more
@@ -39,10 +38,10 @@ class Block {
        // Currently one block has only 8 records for BLOCKSIZE = 200 for the condition ( temp1 < temp2 or temp1 == 20)
        // Changing to temp1 < 0 means that we will have 10 records in the block
        // However, this will result in experiment 5 not working
-       // Exp 3,4,5 requires 2 empty slots in the block
-       if (temp1 < temp2) {
+       if (currentLastPosition < numOfSlots) {
         //    cout<<"block overflow \n";
-           return -1;}
+           return -1;
+        }
        int newSlotId=0;
         while (newSlotId<numberSlot && *((int *)(m+4*newSlotId))!=0)      // find the empty one 
            {
@@ -70,16 +69,28 @@ class Block {
 
    void deleteSlot(int slotId)
    {    
-    cout << "Deleting slot " << slotId << endl;
-    cout << "m: " << m << endl;
-    cout << "m reference: " << &m << endl;
-    cout << "m+4*slotId: " << m+4*slotId << endl;
+    // cout<<"slot Id: "<<slotId<<endl;
+    // cout<< "m:" << m << endl;
+    // printf("m: %p\n", m);
+    // printf("m: %d\n", *m);
 
-    int oldLastposition=*((int *)(m+4*slotId));
-    cout << "old last position is " << oldLastposition << endl;
+    // evalute m+4*slotId
+    // printf("m+4*slotId: %s\n", m+4*slotId);
 
+    int oldLastposition=*((int*)(m + 4*slotId));
+
+    // TRACER: something is wrong with m
+    // could be because block[-2] something is reserved for /0?
+    // could be due to the fact that we are using a pointer to a char array
+    
+    // print done
+    // cout<<"done1"<<endl;
+    // cout<<"old last position: "<< oldLastposition<<endl;
     memmove( m+lastPosition+sizeof(Record), m+lastPosition, oldLastposition-lastPosition);
+    
+    // cout<<"done2"<<endl;
     lastPosition+=sizeof(Record);
+    // cout<<"done3"<<endl;
         for(int i=slotId+1;i<numberSlot;i++)
         {
             int tempPosition=*((int *)(m+4*i));
@@ -87,11 +98,10 @@ class Block {
             if (tempPosition!=0) *((int *)(m+4*i))=tempPosition+sizeof(Record); // shift the slot reference by Record id.
             // new 
         }
+        // cout<<"done4"<<endl;
        *((int *)(m+4*slotId))=0;
        //numberSlot-=1;
-
    }
-
 
    void print()
    {

@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  cz4031:
+    image: cz4031
+    build:
+      context: .
+      dockerfile: ./Dockerfile

@@ -13,7 +13,7 @@ private:
   std::tuple<void*, size_t> *pointers;      // A pointer to an array of struct {void *blockAddress, short int offset} containing other nodes in disk.
   int *keys;            // Pointer to an array of keys in this node.
   int numKeys;            // Current number of keys in this node.
-  bool isLeaf;            // Whether this node is a leaf node.
+  bool isLeaf;            // Whether this node is a leafNode node.
   friend class BPlusTree; // Let the BPlusTree class access this class' private variables.
 
 public:

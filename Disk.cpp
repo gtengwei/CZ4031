@@ -15,10 +15,10 @@ using namespace std;
 class Disk
 {
     public: 
-    vector<Block> blocks;
-    list<pair<int,int> > directory;
-    unordered_set<int> unoccupiedblocks;
-    int blockSize;
+        vector<Block> blocks;
+        list<pair<int,int> > directory;
+        unordered_set<int> unoccupiedblocks;
+        int blockSize;
     
 
     Disk (int blockSize){
