@@ -246,12 +246,12 @@ class MemoryPool {
             cout << endl;
         }
 
-        int numberOfKeysInBplusTree(int numBytes){
+        int numberOfKeysInBplusTree(int blockSize){
             int numBytesPerKey = 4; //since it is an integer
             int numBytesPerValue = 8; //8 bytes for a pointer in 64bit computer
             //bytesUsed = numBytesPerKey * numKeys + numBytesPerValue * (numKeys+1);
             //So numKeys = floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue))
-            return floor((numBytes-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
+            return floor((blockSize-numBytesPerValue)/(numBytesPerKey+numBytesPerValue));
         }
 
         void printBlocks(){
