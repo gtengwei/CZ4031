@@ -21,11 +21,19 @@ struct Node
     int fullSize;
     Node* previousLeaf;
     Node* nextLeaf;
+    // it is must to store NULL when it is the end 
 
+    // if it is leave, point to iterator in double linkedlist 
+    // if it is inner node, point  to the next node. 
+    /*
+    |*|*|*|      3 keys
+    /  \ \ \     4 children
+      */
+    
     Node(int n)
     {
         fullSize=n;
-        leafNode=true;
+        leafNode=true;    // when it is created it is true;
         previousLeaf=NULL;
         nextLeaf=NULL;
     }
@@ -45,10 +53,12 @@ struct Node
         return floor((this->fullSize+1) / 2);
     }
 
+    //take note for root, it is 1
     int getMinNumValues(){
+        //if this is a leafNode
         if (leafNode){
             return floor((this->fullSize+1)/2);
-        } else {
+        } else { //if this is non leafNode
             return floor((this->fullSize)/2)+1;
         }
     }
@@ -81,6 +91,7 @@ struct Node
         children.erase(children.begin()+idx);
     }
 
+
     void eraseKeys(int startIndex, int endIndex){
         keys.erase(keys.begin()+startIndex, keys.begin()+endIndex);
     }
@@ -106,7 +117,7 @@ struct Node
     }
 
     string returnAllKeys(int i){
-        string allKeys = "Index Node "+to_string(i)+": ";
+        string allKeys = "Index Node "+to_string(i)+": "+"|";
         for (auto key : keys){
             allKeys = allKeys+""+to_string(key)+""+"|";
         }
@@ -114,12 +125,13 @@ struct Node
         return allKeys;
     }
 
-    //check if it's the last leafNode
+    //Meaning no more next leafNode node (it's the last of all the leafNode nodes)
     bool isTerminalLeafNode(){
-        return (nextLeaf=NULL);
+        return (nextLeaf==NULL);
     }
 
-    //get next leaf node
+    //get next node
+    //Eg. [1,3] -> [4, 5] return Node with [4, 5]
     Node * getNextNode(){
         if (isTerminalLeafNode()){
             return NULL;
@@ -129,6 +141,7 @@ struct Node
         }
     }
 
+    //For actual data 
     void printAllChildren(){
         cout << "|";
         for (int i=0;i<getNumKeys();i++){
@@ -170,6 +183,11 @@ class bTree
             return _root;
         }
 
+        /*vector<void*> getbyIndex(int i){
+            // to some search and return vector of pointer
+        }
+        */
+
        void insertToBTree(int key, void * value){
             //Case 1: Empty tree 
             if (_root == NULL){
@@ -189,10 +207,10 @@ class bTree
             while (true){ 
                 //Case 2: Current node is not full
                 if (!nodeToInsertInto->isFull()){
-                    int keyInsertionIndex = getKeyInsertionIndex(nodeToInsertInto, key);
-                    int valueInsertionIndex = getValueInsertionIndex(nodeToInsertInto, key);
-                    nodeToInsertInto->addToKeys(key, keyInsertionIndex);
-                    nodeToInsertInto->addToValues(value, valueInsertionIndex);
+                    int keyIndexToInsertAt = findKeyIndexToInsert(nodeToInsertInto, key);
+                    int valueIndexToInsertAt = findValueIndexToInsert(nodeToInsertInto, key);
+                    nodeToInsertInto->addToKeys(key, keyIndexToInsertAt);
+                    nodeToInsertInto->addToValues(value, valueIndexToInsertAt);
                     break; //stop adding once it has been added to an empty node
                 } else {
                     //Case 3: A leafNode node is full;
@@ -240,124 +258,23 @@ class bTree
             }
        }
 
-        /*
-    Node *splitLeafNode(Node *oldNode, int key, void *value)
-    {
-        // Create new leaf node
-        Node *newLeafNode = createNewLeafNode();
-
-        int keyInsertionIndex = getKeyInsertionIndex(oldNode, key);
-        int valueInsertionIndex = getValueInsertionIndex(oldNode, key);
-
-        // insert one key/value pair into new node to prevent overflow
-        if (keyInsertionIndex < degree)
-        {
-            newLeafNode->addToKeys(oldNode->keys[oldNode->getNumKeys() - 1], 0);
-            newLeafNode->addToValues(oldNode->children[oldNode->getNumValues() - 1], 0);
-            oldNode->eraseKey(oldNode->keys.size() - 1);
-            oldNode->eraseValue(oldNode->children.size() - 1);
-            oldNode->addToKeys(key, keyInsertionIndex);
-            oldNode->addToValues(value, valueInsertionIndex);
-        }
-        else
-        {
-            newLeafNode->addToKeys(key, 0);
-            newLeafNode->addToValues(value, 0);
-        }
-
-        // get index to split
-        int indexToSplit = floor((degree + 1) / 2);
-
-        // Populate the new leaf node with [3, 4] and remove [3, 4] from old leaf node
-        newLeafNode->insertKeysFromOtherNode(oldNode,
-                                             indexToSplit,
-                                             oldNode->getNumKeys() - 1);
-        oldNode->eraseKeys(indexToSplit, oldNode->getNumKeys() - 1);
-        newLeafNode->insertValuesFromOtherNode(oldNode,
-                                               indexToSplit,
-                                               oldNode->getNumValues() - 1);
-        oldNode->eraseValues(indexToSplit, oldNode->getNumValues() - 1);
-
-        // //add the new leaf node's pointer to the end of old leaf node
-        // //[1 2] -> [3 4]  old<->new
-        // Node * prevNextLeafNode = oldNode->nextLeaf;
-        // newLeafNode->previousLeaf=oldNode;
-        // oldNode->nextLeaf=newLeafNode;
-        // // //[1 2] -> [3 4]  new <-> prevNextNode
-        // if (prevNextLeafNode!=NULL){
-        //     newLeafNode->nextLeaf = prevNextLeafNode;
-        //     prevNextLeafNode->previousLeaf = newLeafNode->previousLeaf;
-        // }
-        Node *prevNextLeafNode = oldNode->nextLeaf;
-        newLeafNode->previousLeaf = oldNode;
-        newLeafNode->nextLeaf = oldNode->nextLeaf;
-        if (oldNode->nextLeaf != NULL)
-            oldNode->nextLeaf->previousLeaf = newLeafNode;
-        oldNode->nextLeaf = newLeafNode;
-
-        return newLeafNode;
-    }
-
-    // This function splits the values differently than splitLeafNode
-    Node *splitNonLeafNode(Node *oldNode, int key, void *value)
-    {
-        // Create new nonleaf node
-        Node *newNonLeafNode = createNewNonLeafNode();
-        // temporarily insert into the old node (this node will overflow)
-
-        int keyInsertionIndex = getKeyInsertionIndex(oldNode, key);
-        int valueInsertionIndex = getValueInsertionIndex(oldNode, key);
-
-        // insert 1 key/value pair into new node to prevent overflow
-        if (keyInsertionIndex < degree)
-        {
-            newNonLeafNode->addToKeys(oldNode->keys[oldNode->getNumKeys() - 1], 0);
-            newNonLeafNode->addToValues(oldNode->children[oldNode->getNumValues() - 1], 0);
-            oldNode->eraseKey(oldNode->getNumKeys() - 1);
-            oldNode->eraseValue(oldNode->getNumValues() - 1);
-            oldNode->addToKeys(key, keyInsertionIndex);
-            oldNode->addToValues(value, valueInsertionIndex);
-        }
-        else
-        {
-            newNonLeafNode->addToKeys(key, 0);
-            newNonLeafNode->addToValues(value, 0);
-        }
-
-        // get index to split
-        int indexToSplit = floor((degree + 1) / 2);
-
-        // Populate the new leaf node with [3, 4] and remove [3, 4] from old leaf node
-        newNonLeafNode->insertKeysFromOtherNode(oldNode,
-                                                indexToSplit,
-                                                oldNode->getNumKeys() - 1);
-
-        oldNode->eraseKeys(indexToSplit, oldNode->getNumKeys() - 1);
-
-        newNonLeafNode->insertValuesFromOtherNode(oldNode,
-                                                  indexToSplit + 1, // difference is here
-                                                  oldNode->getNumValues() - 1);
-        oldNode->eraseValues(indexToSplit + 1, // difference is here
-                             oldNode->getNumValues() - 1);
-
-        return newNonLeafNode;
-    }*/
-
         Node * splitLeafNode(Node * oldNode, int key, void * value){
             //Create new leafNode node 
             Node * newLeafNode = createNewLeafNode();
             //temporarily insert into the old node (this node will overflow)
 
-            int keyInsertionIndex = getKeyInsertionIndex(oldNode, key);     
-            int valueInsertionIndex = getValueInsertionIndex(oldNode, key);
-
-            oldNode->addToKeys(key, keyInsertionIndex);
-            oldNode->addToValues(value, valueInsertionIndex);
+            int keyIndexToInsertAt = findKeyIndexToInsert(oldNode, key);     
+            int valueIndexToInsertAt = findValueIndexToInsert(oldNode, key);
+            oldNode->addToKeys(key, keyIndexToInsertAt);
+            oldNode->addToValues(value, valueIndexToInsertAt);
             
-            //get index to split
+            //get index to split (everything at & after the index will be shifted to new node)
+            //eg. 1 2 [3 4] (degree=3) then return index=2
+            //eg. 1 2 [3 4 5] (degree=4) then return index=2
+            //eg. 1 2 3 [4 5 6] (degree=5) then return index=3
             int indexToSplit = floor((degree+1)/2);
 
-            //Populate the new leafNode node with removed values from old node
+            //Populate the new leafNode node with [3, 4] and remove [3, 4] from old leafNode node
             newLeafNode->insertKeysFromOtherNode(oldNode, 
                                                 indexToSplit, 
                                                 oldNode->getNumKeys());
@@ -365,7 +282,7 @@ class bTree
             newLeafNode->insertValuesFromOtherNode(oldNode, 
                                                     indexToSplit, 
                                                     oldNode->getNumValues());
-            oldNode->eraseValues(indexToSplit, oldNode->getNumValues());
+            oldNode->eraseValues(indexToSplit, oldNode->getNumValues());          
 
             // //add the new leafNode node's pointer to the end of old leafNode node
             // //[1 2] -> [3 4]  old<->new
@@ -393,16 +310,19 @@ class bTree
             Node * newNonLeafNode = createNewNonLeafNode();
             //temporarily insert into the old node (this node will overflow)
             
-            int keyInsertionIndex = getKeyInsertionIndex(oldNode, key);
-            int valueInsertionIndex = getValueInsertionIndex(oldNode, key);
-            oldNode->addToKeys(key, keyInsertionIndex);
-            oldNode->addToValues(value, valueInsertionIndex);
+            int keyIndexToInsertAt = findKeyIndexToInsert(oldNode, key);
+            int valueIndexToInsertAt = findValueIndexToInsert(oldNode, key);;
+            oldNode->addToKeys(key, keyIndexToInsertAt);
+            oldNode->addToValues(value, keyIndexToInsertAt+1);
             
-            //get index to split
+            //get index to split (everything at & after the index will be shifted to new node)
+            //eg. 1 2 [3 4] (degree=3) then return index=2
+            //eg. 1 2 [3 4 5] (degree=4) then return index=2
+            //eg. 1 2 3 [4 5 6] (degree=5) then return index=3
             int indexToSplit = floor((degree+1)/2);
 
             
-            //Populate the new non leafNode node with removed values from old node
+            //Populate the new leafNode node with [3, 4] and remove [3, 4] from old leafNode node
             newNonLeafNode->insertKeysFromOtherNode(oldNode, 
                                                 indexToSplit, 
                                                 oldNode->getNumKeys());
@@ -419,7 +339,7 @@ class bTree
         }
 
         //find index in keys of node to insert into
-        int getKeyInsertionIndex(Node * nodeToInsert, int key){
+        int findKeyIndexToInsert(Node * nodeToInsert, int key){
             //compare the key with the keys of the current node
             for (int i=0;i<nodeToInsert->keys.size();i++){
                 //imagine keys 2, 3, 5
@@ -435,7 +355,7 @@ class bTree
         }
 
         //find index in values of node to insert into
-        int getValueInsertionIndex(Node * nodeToInsert, int key){
+        int findValueIndexToInsert(Node * nodeToInsert, int key){
             if (nodeToInsert->leafNode){
                 //compare the key with the keys of the current node
                 for (int i=0;i<nodeToInsert->keys.size();i++){
@@ -672,14 +592,12 @@ class bTree
             while(!current_node->leafNode)
             {
                 indexNodeCounter+=1;
-                //get first 5 index node keys into a string
                 if (firstFiveIndexCounter<6){
                     string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
                     firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
-                vector <int> temp = current_node->keys;
-                int childrenIndex=upper_bound(temp.begin(),temp.end(),numVotes)-temp.begin();
+                int childrenIndex=upper_bound(current_node->keys.begin(),current_node->keys.end(),numVotes)-current_node->keys.begin();
                 current_node=(Node* )current_node->children[childrenIndex];
             }
 
@@ -690,9 +608,11 @@ class bTree
             //current_node->printAllKeys();
             while(current_node!=NULL && current_node->keys[0]==numVotes && current_node->keys.back()!=numVotes)
             {
+                indexNodeCounter+=1;
                 current_node=current_node->previousLeaf;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
             }  
@@ -707,8 +627,16 @@ class bTree
                     // current_node->printAllChildren();
                     firstFiveDataCounter-=1;
                 }
-                if (flag == 1){indexNodeCounter+=1;}
+                if (firstFiveIndexCounter<6){
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
+                    firstFiveIndexCounter+=1;
+                }
+                if (flag == 1){
+                    indexNodeCounter+=1;
+                }
                 flag = 1;
+
                 for (int i=0;i<current_node->getNumKeys();i++){
                     if (current_node->keys[i]==numVotes){  
                         pair<int,int> pointerToRecord = *(pair<int,int> *)current_node->children[i];
@@ -718,8 +646,9 @@ class bTree
                 current_node=current_node->nextLeaf;
             }
 
-            cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
-            cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
+            // cout<<"Content of first 5 index node: "<<endl<<firstFiveIndexContent;
+            // cout<<"Content of first 5 index node: "<<endl<<firstfiveIndex[0]<<endl<<firstfiveIndex[1]<<firstfiveIndex[2]<<firstfiveIndex[3]<<firstfiveIndex[4];
+            // cout<<"Total number of index nodes: "<<indexNodeCounter<<endl<<endl;
 
             // cout<<"\nTotal number of data nodes: "<<dataBlockCounter<<endl;
             return result;
@@ -752,7 +681,8 @@ class bTree
                 //current_node->printAllKeys();
                 indexNodeCounter+=1;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
                 int childrenIndex=upper_bound(current_node->keys.begin(),current_node->keys.end(),lower)-current_node->keys.begin();
@@ -766,9 +696,11 @@ class bTree
             while(current_node!=NULL && current_node->keys[0]==lower)
             {
                 //current_node->printAllKeys();
+                indexNodeCounter+=1;
                 current_node=current_node->previousLeaf;
                 if (firstFiveIndexCounter<6){
-                    firstFiveIndexContent = firstFiveIndexContent.append(current_node->returnAllKeys(firstFiveIndexCounter));
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
                     firstFiveIndexCounter+=1;
                 }
 
@@ -783,6 +715,11 @@ class bTree
                 dataBlockCounter+=1;
                 if (firstFiveDataCounter>0){
                     firstFiveDataCounter-=1;
+                }
+                if (firstFiveIndexCounter<6){
+                    string allKeys = current_node->returnAllKeys(firstFiveIndexCounter);
+                    firstFiveIndexContent = firstFiveIndexContent.append(allKeys);
+                    firstFiveIndexCounter+=1;
                 }
                 if (flag == 1){
                     indexNodeCounter+=1;
@@ -810,17 +747,6 @@ class bTree
             return result;
         }
 
-        
-        int getIndexOfKeyInNode(Node * currentNode, int key){
-            //iterate through all keys and output the index of key
-            for (int i = 0;i<currentNode->getNumKeys();i++){
-                if (currentNode->keys[i]==key){
-                    return i;
-                }
-            }
-            return -1; //This means we didn't find the key in the node
-        }
-        
         //deletes returned value so that we can delete it from the disk
         pair<int,int> * deleteOneKey(int key, int * counter = nullptr){
             int mergeCounter = 0;
@@ -945,6 +871,16 @@ class bTree
                 return nullptr;
             }
 
+        }
+
+        int getIndexOfKeyInNode(Node * currentNode, int key){
+            //iterate through all keys and output the index of key
+            for (int i = 0;i<currentNode->getNumKeys();i++){
+                if (currentNode->keys[i]==key){
+                    return i;
+                }
+            }
+            return -1; //This means we didn't find the key in the node
         }
 
         int getIndexOfValueInNode(Node * parentNode, Node * currentNode){
@@ -1184,35 +1120,6 @@ class bTree
             }
         }
 
-                int getNumberOfKeysToDelete(int numVotes){
-            // use of binary search
-            // print all the content inside the data blocks, even if the numBVotes is not equal
-            // return vector of directory pointer.
-            Node * current_node = _root;
-            int counter =0;
-            while(!current_node->leafNode){
-                int childrenIndex=upper_bound(current_node->keys.begin(),
-                current_node->keys.end(),
-                numVotes)-current_node->keys.begin();
-                current_node=(Node* )current_node->children[childrenIndex];
-            }
-            // now reach leafNode node
-            // keep traversing to the left 23 33 33 33
-            //current_node->printAllKeys();
-            while(current_node!=NULL && current_node->keys[0]==numVotes){
-                current_node=current_node->previousLeaf;
-            } 
-            while(current_node!=NULL && current_node->keys[0]<=numVotes){
-                for (int i=0;i<current_node->getNumKeys();i++){
-                    if (current_node->keys[i]==numVotes){  
-                        counter+=1;
-                    }
-                }
-                current_node=current_node->nextLeaf;
-            }
-            return counter;
-        }
-
         Node * mergeWithRightSibling(Node * parentNode, Node * currentNode){
             // cout << "mergeWithRightSibling";
             int indexOfCurrentNode = getIndexOfValueInNode(parentNode, currentNode);
@@ -1260,7 +1167,32 @@ class bTree
 
         }
 
-
+        int getNumberOfKeysToDelete(int numVotes){
+            // use of binary search
+            // print all the content inside the data blocks, even if the numBVotes is not equal
+            // return vector of directory pointer.
+            Node * current_node = _root;
+            int counter =0;
+            while(!current_node->leafNode){
+                int childrenIndex=upper_bound(current_node->keys.begin(),current_node->keys.end(),numVotes)-current_node->keys.begin();
+                current_node=(Node* )current_node->children[childrenIndex];
+            }
+            // now reach leafNode node
+            // keep traversing to the left 23 33 33 33
+            //current_node->printAllKeys();
+            while(current_node!=NULL && current_node->keys[0]==numVotes){
+                current_node=current_node->previousLeaf;
+            } 
+            while(current_node!=NULL && current_node->keys[0]<=numVotes){
+                for (int i=0;i<current_node->getNumKeys();i++){
+                    if (current_node->keys[i]==numVotes){  
+                        counter+=1;
+                    }
+                }
+                current_node=current_node->nextLeaf;
+            }
+            return counter;
+        }
 };
 
 
