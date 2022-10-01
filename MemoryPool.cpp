@@ -210,7 +210,7 @@ class MemoryPool {
             cout<<"Average of \"averageRatings\" of the records: "<<sumOfAvgRatings/allRatings.size()<<endl;
         }
 
-                   void experiment4()
+        void experiment4()
         {
             vector<pair<int,int> > result=btree->searchRange(30000,40000);
 
@@ -312,8 +312,8 @@ class MemoryPool {
                 disk->deleteRecord(pair->first,pair->second);
             }
             cout << "Number of times a node is deleted: "<<numOfPurgedNodes<<endl;
-            cout << "Number of nodes in new B+ tree: "<< btree->getNumberOfNodes()<<endl;
-            cout << "Height of the new B+ tree: " << btree->getHeight()<<endl;
+            cout << "Number of nodes in updated B+ tree: "<< btree->getNumberOfNodes()<<endl;
+            cout << "Height of the updated B+ tree: " << btree->getHeight()<<endl;
             cout << "Keys/Content of the root node: " ;
             btree->getRoot()->printAllKeys();
             cout << endl;
