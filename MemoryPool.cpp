@@ -93,8 +93,8 @@ class MemoryPool {
             //number of blocks output
             int numOfDataBlocks = disk->getTotalNumberOfBlocks();
             int numOfIndexBlocks = btree->getNumberOfNodes();
-            cout << "Total Number of Blocks: " << numOfDataBlocks <<"\n";
-            cout << "Number Of Nodes in B+ Tree: " << numOfIndexBlocks <<"\n";
+            cout << "Total Number of Data Blocks: " << numOfDataBlocks <<"\n";
+            cout << "Total Number Of Nodes in B+ Tree: " << numOfIndexBlocks <<"\n";
             //the size of database (in terms of MB)
             // int blocksize = disk->getBlockSizeinByte();
             cout<<"Block size: "<< BLOCKSIZE << "\n";
@@ -103,7 +103,8 @@ class MemoryPool {
 
             float btree_size = (float(numOfIndexBlocks * BLOCKSIZE) / float((pow(10,6)))); // 1MB = 10^6 bytes
             cout <<  "Size of B+ Tree(in terms of MB): " << btree_size << "\n";
-
+            
+            cout << "Total Number of Blocks(Data Blocks + B+ tree Nodes): " << numOfDataBlocks + numOfIndexBlocks << "\n";
             float total_size = relationalData_size + btree_size;
             cout <<  "Total Size of Database(in terms of MB): " << total_size << "\n";
         }
