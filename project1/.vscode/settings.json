@@ -1,7 +1,9 @@
 {
     "files.associations": {
         "*.pl": "prolog",
-        "array": "cpp",
+        "memory": "cpp",
+        "fstream": "cpp",
+        "tuple": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
         "cctype": "cpp",
@@ -17,7 +19,6 @@
         "ctime": "cpp",
         "cwchar": "cpp",
         "exception": "cpp",
-        "fstream": "cpp",
         "initializer_list": "cpp",
         "ios": "cpp",
         "iosfwd": "cpp",
@@ -26,7 +27,6 @@
         "iterator": "cpp",
         "limits": "cpp",
         "list": "cpp",
-        "memory": "cpp",
         "new": "cpp",
         "ostream": "cpp",
         "sstream": "cpp",
@@ -34,7 +34,6 @@
         "streambuf": "cpp",
         "string": "cpp",
         "system_error": "cpp",
-        "tuple": "cpp",
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "unordered_map": "cpp",
@@ -50,6 +49,7 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "array": "cpp"
     }
 }
