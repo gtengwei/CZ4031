@@ -339,6 +339,7 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         # If user selects a query, then show the corresponding query in display_query frame
         if event == '-SELECT_QUERY-' and values['-QUERY-'] != '':
             window['-TEXT_QUERY-'].update(query_dict[values['-QUERY-']])
+
         
         # If user clicks on the execute button, then execute the query 
         # and show the image result in display_QEP frame and the description in display_QEP_description frame
@@ -356,15 +357,15 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         schema = values['-SCHEMA-']
 
         # Query chosen by user
-        query = values['-QUERY-']
-        
-        if query in query_dict:
-            # Query to be executed in PostgreSQL
-            # IMPORTANT
-            print(query_dict[query])
-        # print(query)
-        # print(schema)
+        # print('text_query: ', values['-TEXT_QUERY-'])
+        # print('query: ', values['-QUERY-'])
 
+        # Query to be executed in PostgreSQL
+        # IMPORTANT
+        query = values['-TEXT_QUERY-']
+        print(query)
+
+        # print(schema)
     window.close()
 
 if __name__ == '__main__':
