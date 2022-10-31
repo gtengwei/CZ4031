@@ -1,6 +1,8 @@
+from winreg import QueryInfoKey
 import PySimpleGUI as sg
 import time
 from PIL import Image, ImageTk
+from preprocessing import *
 
 # Add a touch of color
 sg.theme('DarkAmber')   
@@ -11,6 +13,8 @@ sg.set_options(font=('Helvetica', 12)) #
 # Default size for frames, can be changed
 WIDTH = 350
 HEIGHT = 500
+
+query = ''
 
 # Blank frame for testing purposes
 def blank_frame():
@@ -76,10 +80,10 @@ def build():
     ]
 
     margins = (2, 2)
-    return sg.Window('CZ4031 Project 2', layout, margins = margins, finalize=True)
+    return sg.Window('CZ4031 Project 2', layout, margins = margins, finalize=True, resizable=True)
 
 # Main function
-def main():
+def interface(host,database,user,password):
     window = build()
 
     # Query dictionary to store query
@@ -327,6 +331,9 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
             window['-COL2-'].update(visible=False)
             window['-COL3-'].update(visible=False)
             window['-COL4-'].update(visible=False)
+            window['-TEXT_QUERY-'].update('')
+            window['-IMAGE-'].update('')
+            window['-TEXT_QEP-'].update('')
 
         # If user selects a database schema, then show the corresponding frames 
         if event == '-SELECT_SCHEMA-' and values['-SCHEMA-'] != '':
@@ -339,16 +346,6 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         # If user selects a query, then show the corresponding query in display_query frame
         if event == '-SELECT_QUERY-' and values['-QUERY-'] != '':
             window['-TEXT_QUERY-'].update(query_dict[values['-QUERY-']])
-
-        
-        # If user clicks on the execute button, then execute the query 
-        # and show the image result in display_QEP frame and the description in display_QEP_description frame
-        if event == 'Submit':
-            # TODO: implement PostsgreSQL implementation, run query and get QEP
-            image = resize_image('test.png', WIDTH, HEIGHT)
-            image = ImageTk.PhotoImage(image=image)
-            window['-IMAGE-'].update(data=image)
-            window['-TEXT_QEP-'].update(QEP_description_holder)
 
         # Move window to center of screen
         move_center(window)
@@ -365,8 +362,16 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         query = values['-TEXT_QUERY-']
         print(query)
 
+        # If user clicks on the execute button, then execute the query 
+        # and show the image result in display_QEP frame and the description in display_QEP_description frame
+        if event == 'Submit':
+            # TODO: implement PostsgreSQL implementation, run query and get QEP
+            image = resize_image('test.png', WIDTH, HEIGHT)
+            image = ImageTk.PhotoImage(image=image)
+            window['-IMAGE-'].update(data=image)
+            window['-TEXT_QEP-'].update(QEP_description_holder)
+            get_query_result(query,host,database,user,password)
+        
+        
         # print(schema)
     window.close()
-
-if __name__ == '__main__':
-    main()
