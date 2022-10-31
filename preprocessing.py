@@ -17,6 +17,6 @@ def get_query_result(query,host,database,user,password):
 
     cur.execute(query)
     rows = cur.fetchall()
-    print(rows)
+    print("Query Execution Plan: ", rows)
 
     cur.close()

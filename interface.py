@@ -360,6 +360,7 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         # Query to be executed in PostgreSQL
         # IMPORTANT
         query = values['-TEXT_QUERY-']
+        query = 'EXPLAIN(FORMAT JSON) ' + query
         print(query)
 
         # If user clicks on the execute button, then execute the query 
