@@ -427,7 +427,75 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
             window['-IMAGE-'].update(data=image)
             #window['-TEXT_QEP_1-'].update(QEP_description_holder)
 
-           
+            # FIRST AEP
+            set_seq_off = 'SET enable_seqscan to off;'
+            db.execute_query(set_seq_off)
+
+            result_AEP_seq = db.get_query_result(query)
+            print(result_AEP_seq)
+            result_AEP_seq_obj = json.loads(json.dumps(result_AEP_seq))
+            result_AEP_seq_nlp = get_description(result_AEP_seq_obj)
+            total_cost = get_total_cost(result_AEP_seq_obj)
+            print(total_cost)
+            result_AEP_seq_tree = get_tree(result_AEP_seq_obj)
+            result_AEP_seq_nlp += '\n\n' + result_AEP_seq_tree + '\n\n' + 'With Sequential Scan Turned Off'
+            AEP_list.append(result_AEP_seq_nlp)
+            set_seq_on = 'SET enable_seqscan to on;'
+            db.execute_query(set_seq_on)
+
+            if 'order by' in query.lower():
+                set_sort_off = 'SET enable_sort to off;'
+                db.execute_query(set_sort_off)
+                result_AEP_sort = db.get_query_result(query)
+                print(result_AEP_sort)
+                result_AEP_sort_obj = json.loads(json.dumps(result_AEP_sort))
+                result_AEP_sort_nlp = get_description(result_AEP_sort_obj)
+                total_cost = get_total_cost(result_AEP_sort_obj)
+                print(total_cost)
+                result_AEP_sort_tree = get_tree(result_AEP_sort_obj)
+                result_AEP_sort_nlp += '\n\n' + result_AEP_sort_tree + '\n\n' + 'With Sort Turned Off'
+                set_sort_on = 'SET enable_sort to on;'
+                db.execute_query(set_sort_on)
+                AEP_list.append(result_AEP_sort_nlp)
+
+            indices = [i for i, x in enumerate(query) if x == "="]
+            print(indices)
+            for index in indices:
+                print(query[index-5:index+5].replace(" ", "").replace("=", "").replace("_",""))
+                if (query[index-5:index+5].replace(" ", "").replace("=", "").replace("_","")).isalpha():
+                    set_hash_join_off = 'SET enable_hashjoin to off;'
+                    db.execute_query(set_hash_join_off)
+
+                    result_AEP_hash = db.get_query_result(query)
+                    print(result_AEP_hash)
+                    result_AEP_hash_obj = json.loads(json.dumps(result_AEP_hash))
+                    result_AEP_hash_nlp = get_description(result_AEP_hash_obj)
+                    total_cost = get_total_cost(result_AEP_hash_obj)
+                    print(total_cost)
+                    result_AEP_hash_tree = get_tree(result_AEP_hash_obj)
+                    result_AEP_hash_nlp += '\n\n' + result_AEP_hash_tree + '\n\n' + 'With Hash Join Turned Off'
+                    set_hash_join_on = 'SET enable_hashjoin to on;'
+                    db.execute_query(set_hash_join_on)
+                    AEP_list.append(result_AEP_hash_nlp)
+                    break
+            #print(AEP_list[0])
+            print(AEP_list)
+            if len(AEP_list) == 3:
+                print("test")
+                window['-TEXT_AEP_1-'].update(AEP_list[0])
+                window['-TEXT_AEP_2-'].update(AEP_list[1] )
+                window['-TEXT_AEP_3-'].update(AEP_list[2] )
+            # FINAL CHOSEN QEP
+            result_new = db.get_query_result(query)
+            print(result_new)
+            result_new_obj = json.loads(json.dumps(result_new))
+            result_new_nlp = get_description(result_new_obj)
+            total_cost = get_total_cost(result_new_obj)
+            print(total_cost)
+            result_new_tree = get_tree(result_new_obj)
+            window['-TEXT_QEP_1-'].update(result_new_nlp)
+            window['-TEXT_QEP_2-'].update(result_new_nlp)
+            window['-TEXT_QEP_3-'].update(result_new_nlp)
 
             
             
