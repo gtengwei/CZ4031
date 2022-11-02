@@ -11,8 +11,8 @@ sg.theme('DarkAmber')
 sg.set_options(font=('Helvetica', 12)) #
 
 # Default size for frames, can be changed
-WIDTH = 350
-HEIGHT = 500
+WIDTH = 500
+HEIGHT = 700
 
 query = ''
 
@@ -54,8 +54,29 @@ def build():
     ]
 
     # Frame to show QEP description
-    frame_display_QEP_description = [
-        [sg.Multiline(key='-TEXT_QEP-', size=(60, 10))]
+    frame_display_QEP_description_1 = [
+        [sg.Multiline(key='-TEXT_QEP_1-', size=(60, 18))]
+    ]
+
+    frame_display_QEP_description_2 = [
+        [sg.Multiline(key='-TEXT_QEP_2-', size=(60, 18))]
+    ]
+
+    frame_display_QEP_description_3 = [
+        [sg.Multiline(key='-TEXT_QEP_3-', size=(60, 18))]
+    ]
+    frame_display_AEP_description_1 = [
+        [sg.Multiline(key='-TEXT_AEP_1-', size=(60, 18))]
+    ]
+    frame_display_AEP_description_2 = [
+        [sg.Multiline(key='-TEXT_AEP_2-', size=(60, 18))]
+    ]
+    frame_display_AEP_description_3 = [
+        [sg.Multiline(key='-TEXT_AEP_3-', size=(60, 18))]
+    ]
+
+    frame_display_visual_QEP = [
+        [sg.Image(key='-IMAGE-', expand_x=True, expand_y=True)]
     ]
 
     # Frame to show Query chosen
@@ -63,20 +84,36 @@ def build():
         [sg.Text('Please input your SQL query')],
         [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10))],
         [sg.Button('Submit')],
-        [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description, expand_x=True, expand_y=True)]
+        [sg.Frame("Visualise Plan", frame_display_visual_QEP)],
+        
     ]
     
-    # Frame to show QEP image
-    frame_display_QEP = [
-        [sg.Image(size=(250, 400), key='-IMAGE-')]
+    frame_display_QEP1 = [
+       [sg.Frame("Natural Language Description of AEP 1", frame_display_AEP_description_1, expand_x=True, expand_y=True)],
+       [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+       [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_1, expand_x=True, expand_y=True)]
     ]
+    frame_display_QEP2 = [
+         [sg.Frame("Natural Language Description of AEP 2", frame_display_AEP_description_2, expand_x=True, expand_y=True)],
+         [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+         [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_2, expand_x=True, expand_y=True)]
+     ]
+    frame_display_QEP3 = [
+        [sg.Frame("Natural Language Description of AEP 3", frame_display_AEP_description_3, expand_x=True, expand_y=True)],
+        [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+        [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_3, expand_x=True, expand_y=True)]
+    ]
+    
+
 
     # Layout to combine all frames
     layout = [
     [sg.Frame('Choose your database schema', initial_frame, size=(WIDTH,HEIGHT), visible=True, key='-COL1-'),
      sg.Frame('Database Schema', frame_select_query, size=(200,HEIGHT), visible=False, key='-COL2-'),
      sg.Frame('User Query', frame_display_query, size=(500,HEIGHT), visible=False, key='-COL3-'),
-     sg.Frame('QEP', frame_display_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL4-')],
+     sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
+     sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
+     sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-')]
     ]
 
     margins = (2, 2)
@@ -85,7 +122,9 @@ def build():
 # Main function
 def interface(host,database,user,password):
     window = build()
-
+    db = Database(host,database,user,password)
+    number_of_AEP = 0
+    AEP_list = []
     # Query dictionary to store query
     query_dict = {
     'Query1': '''select 
@@ -317,10 +356,11 @@ order by
 Step 1, perform a sequential lineitem search and perform a table lineitem group aggregate with a l_returnflag and l_linestatus attribute grouping to get the T1 intermediate table .
 Step 2, to obtain the final result , sort the table T1 with an attribute l_returnflag, l_linestatus .
     '''
-
+    layout = 4
     # Display window
     while True:
         event, values = window.read()
+        print(event)
         # End program if user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
@@ -347,6 +387,21 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         if event == '-SELECT_QUERY-' and values['-QUERY-'] != '':
             window['-TEXT_QUERY-'].update(query_dict[values['-QUERY-']])
 
+        if event[0] == '1':
+            window['-COL4-'].update(visible=True)
+            window['-COL5-'].update(visible=False)
+            window['-COL6-'].update(visible=False)
+        
+        if event[0] == '2':
+            window['-COL4-'].update(visible=False)
+            window['-COL5-'].update(visible=True)
+            window['-COL6-'].update(visible=False)
+        
+        if event[0] == '3':
+            window['-COL4-'].update(visible=False)
+            window['-COL5-'].update(visible=False)
+            window['-COL6-'].update(visible=True)
+
         # Move window to center of screen
         move_center(window)
 
@@ -360,19 +415,34 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
         # Query to be executed in PostgreSQL
         # IMPORTANT
         query = values['-TEXT_QUERY-']
-        query = 'EXPLAIN(FORMAT JSON) ' + query
+        query = 'EXPLAIN(ANALYZE, FORMAT JSON) ' + query
         print(query)
 
         # If user clicks on the execute button, then execute the query 
         # and show the image result in display_QEP frame and the description in display_QEP_description frame
         if event == 'Submit':
             # TODO: implement PostsgreSQL implementation, run query and get QEP
-            image = resize_image('test.png', WIDTH, HEIGHT)
+            image = resize_image('test.png', WIDTH, HEIGHT//2)
             image = ImageTk.PhotoImage(image=image)
             window['-IMAGE-'].update(data=image)
-            window['-TEXT_QEP-'].update(QEP_description_holder)
-            get_query_result(query,host,database,user,password)
-        
+            #window['-TEXT_QEP_1-'].update(QEP_description_holder)
+
+           
+
+            
+            
         
         # print(schema)
     window.close()
+
+
+def get_description( json_obj):
+    descriptions = get_text(json_obj)
+    result = ""
+    for description in descriptions:
+        result = result + description + "\n"
+    return result
+
+def get_tree(json_obj):
+    head = parse_json(json_obj)
+    return generate_tree("", head)
