@@ -1,10 +1,6 @@
 from interface import *
 import argparse
 
-def main(host,database,user,password):
-    interface(host,database,user,password)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', help='postgresql connection host')
@@ -16,4 +12,4 @@ if __name__ == '__main__':
     database = args.database
     user = args.user
     password = args.password
-    main(host,database,user,password)
+    interface(host,database,user,password)
