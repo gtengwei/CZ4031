@@ -57,6 +57,8 @@ def parse_json(data):
     q.put(plan)
     q_node.put(None)
 
+    node_type_list = []
+    node_total_cost = []
     while not q.empty():
         current_plan = q.get()
         parent_node = q_node.get()
@@ -105,7 +107,8 @@ def parse_json(data):
         current_node = Node(current_plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter,
                             subplan_name, actual_rows, actual_time, description, total_cost)
-
+        node_type_list.append(current_node.node_type)
+        node_total_cost.append(current_node.total_cost)
         if "Limit" == current_node.node_type:
             current_node.plan_rows = current_plan['Plan Rows']
 
@@ -131,7 +134,7 @@ def parse_json(data):
                 # push parent for each child into queue
                 q_node.put(current_node)
 
-    return head_node
+    return head_node, node_type_list, node_total_cost
 
 def simplify_graph(node):
     new_node = copy.deepcopy(node)
@@ -360,7 +363,7 @@ def get_text(json_obj):
     cur_table_name = 1
     table_subquery_name_pair = {}
 
-    head_node = parse_json(json_obj)
+    head_node = parse_json(json_obj)[0]
     simplified_graph = simplify_graph(head_node)
 
     to_text(simplified_graph)
@@ -528,15 +531,16 @@ def check_children(nodeA, nodeB, difference, reasons):
                 check_children(childrenA[1], childrenB[1],  difference, reasons)
 
 def get_total_cost(json_obj):
-    node = parse_json(json_obj)
+    node = parse_json(json_obj)[0]
     return node.total_cost
+
 def get_diff(json_obj_A, json_obj_B):
     global num
-    head_node_a = parse_json(json_obj_A)
+    head_node_a = parse_json(json_obj_A)[0]
     clear_cache()
     to_text(head_node_a)
 
-    head_node_b = parse_json(json_obj_B)
+    head_node_b = parse_json(json_obj_B)[0]
     clear_cache()
     to_text(head_node_b)
 
@@ -564,7 +568,7 @@ class Database:
     
 
     def get_query_result(self, query):
-        print("Query:", query)
+        #print("Query:", query)
         
             # host="localhost",
             # database="TCP-H",

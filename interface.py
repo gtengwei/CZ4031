@@ -123,7 +123,6 @@ def build():
 def interface(host,database,user,password):
     window = build()
     db = Database(host,database,user,password)
-    number_of_AEP = 0
     AEP_list = []
     # Query dictionary to store query
     query_dict = {
@@ -351,7 +350,27 @@ order by
     o_year desc;
     '''}
 
+    # List of planner method configurations to disable and enable
+    set_seq_off = 'SET enable_seqscan to off;'
+    set_seq_on = 'SET enable_seqscan to on;'
+    set_index_scan_off = 'SET enable_indexscan to off;'
+    set_index_scan_on = 'SET enable_indexscan to on;'
+    set_hash_join_off = 'SET enable_hashjoin to off;'
+    set_hash_join_on = 'SET enable_hashjoin to on;'
+    set_merge_join_off = 'SET enable_mergejoin to off;'
+    set_merge_join_on = 'SET enable_mergejoin to on;'
+    set_sort_off = 'SET enable_sort to off;'
+    set_sort_on = 'SET enable_sort to on;'
+    set_gather_merge_off = 'SET enable_gathermerge to off;'
+    set_gather_merge_on = 'SET enable_gathermerge to on;'
+    set_nested_loop_off = 'SET enable_nestloop to off;'
+    set_nested_loop_on = 'SET enable_nestloop to on;'
+    set_bitmap_scan_off = 'SET enable_bitmapscan to off;'
+    set_bitmap_scan_on = 'SET enable_bitmapscan to on;'
 
+    count = 0
+    aep_node_type_list = []
+    aep_node_cost_list = []
     # Display window
     while True:
         event, values = window.read()
@@ -411,11 +430,12 @@ order by
         # IMPORTANT
         query = values['-TEXT_QUERY-']
         query = 'EXPLAIN(ANALYZE, FORMAT JSON) ' + query
-        print(query)
+        
 
         # If user clicks on the execute button, then execute the query 
         # and show the image result in display_QEP frame and the description in display_QEP_description frame
         if event == 'Submit':
+            print(query)
             # TODO: implement PostsgreSQL implementation, run query and get QEP
             image = resize_image('test.png', WIDTH, HEIGHT//2)
             image = ImageTk.PhotoImage(image=image)
@@ -426,66 +446,206 @@ order by
             qep = db.get_query_result(query)
             print(qep)
             qep_obj = json.loads(json.dumps(qep))
+            parse_json_obj = parse_json(qep_obj)
+
+            # Get the distinct node types in the QEP
+            qep_node_type_list = parse_json_obj[1]
+
+            # Get the cost of each node type in the QEP
+            qep_node_cost_list = parse_json_obj[2]
+            print(qep_node_type_list)
             qep_nlp = get_description(qep_obj)
-            qep_total_cost = get_total_cost(qep_obj)
             qep_tree = get_tree(qep_obj)
+            qep_nlp += '\n\n' + qep_tree
+            print(qep_node_cost_list)
+            for node in set(qep_node_type_list):
+                # For now, max number of AEP is 3
+                if count == 4:
+                    break
+                if node == 'Seq Scan':
+                    # FIRST AEP
+                    db.execute_query(set_seq_off)
 
-            # FIRST AEP
-            set_seq_off = 'SET enable_seqscan to off;'
-            db.execute_query(set_seq_off)
+                    result_AEP_seq = db.get_query_result(query)
+                    print(result_AEP_seq)
+                    result_AEP_seq_obj = json.loads(json.dumps(result_AEP_seq))
+                    parse_json_obj = parse_json(result_AEP_seq_obj)
 
-            result_AEP_seq = db.get_query_result(query)
-            print(result_AEP_seq)
-            result_AEP_seq_obj = json.loads(json.dumps(result_AEP_seq))
-            result_AEP_seq_nlp = get_description(result_AEP_seq_obj)
-            total_cost = get_total_cost(result_AEP_seq_obj)
-            print(total_cost)
-            result_AEP_seq_tree = get_tree(result_AEP_seq_obj)
-            result_AEP_seq_nlp += '\n\n' + result_AEP_seq_tree + '\n\n' + 'With Sequential Scan Turned Off'
-            AEP_list.append(result_AEP_seq_nlp)
-            set_seq_on = 'SET enable_seqscan to on;'
-            db.execute_query(set_seq_on)
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
 
-            if 'order by' in query.lower():
-                set_sort_off = 'SET enable_sort to off;'
-                db.execute_query(set_sort_off)
-                result_AEP_sort = db.get_query_result(query)
-                print(result_AEP_sort)
-                result_AEP_sort_obj = json.loads(json.dumps(result_AEP_sort))
-                result_AEP_sort_nlp = get_description(result_AEP_sort_obj)
-                total_cost = get_total_cost(result_AEP_sort_obj)
-                print(total_cost)
-                result_AEP_sort_tree = get_tree(result_AEP_sort_obj)
-                result_AEP_sort_nlp += '\n\n' + result_AEP_sort_tree + '\n\n' + 'With Sort Turned Off'
-                set_sort_on = 'SET enable_sort to on;'
-                db.execute_query(set_sort_on)
-                AEP_list.append(result_AEP_sort_nlp)
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
 
-            indices = [i for i, x in enumerate(query) if x == "="]
-            print(indices)
-            for index in indices:
-                print(query[index-5:index+5].replace(" ", "").replace("=", "").replace("_",""))
-                if (query[index-5:index+5].replace(" ", "").replace("=", "").replace("_","")).isalpha():
-                    set_hash_join_off = 'SET enable_hashjoin to off;'
+                    result_AEP_seq_nlp = get_description(result_AEP_seq_obj)
+                    total_cost = get_total_cost(result_AEP_seq_obj)
+                    print(total_cost)
+                    result_AEP_seq_tree = get_tree(result_AEP_seq_obj)
+                    result_AEP_seq_nlp += '\n\n' + result_AEP_seq_tree + '\n\n' + 'With Sequential Scan Turned Off'
+                    db.execute_query(set_seq_on)
+                    AEP_list.append(result_AEP_seq_nlp)
+
+
+                elif node == 'Sort':
+                    set_sort_off = 'SET enable_sort to off;'
+                    db.execute_query(set_sort_off)
+                    result_AEP_sort = db.get_query_result(query)
+                    print(result_AEP_sort)
+                    result_AEP_sort_obj = json.loads(json.dumps(result_AEP_sort))
+                    parse_json_obj = parse_json(result_AEP_sort_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
+                    result_AEP_sort_nlp = get_description(result_AEP_sort_obj)
+                    total_cost = get_total_cost(result_AEP_sort_obj)
+                    print(total_cost)
+                    result_AEP_sort_tree = get_tree(result_AEP_sort_obj)
+                    result_AEP_sort_nlp += '\n\n' + result_AEP_sort_tree + '\n\n' + 'With Sort Turned Off'
+                    set_sort_on = 'SET enable_sort to on;'
+                    db.execute_query(set_sort_on)
+                    AEP_list.append(result_AEP_sort_nlp)
+                
+                elif node == 'Gather Merge':
+                    db.execute_query(set_gather_merge_off)
+                    result_AEP_gather = db.get_query_result(query)
+                    print(result_AEP_gather)
+                    result_AEP_gather_obj = json.loads(json.dumps(result_AEP_gather))
+                    parse_json_obj = parse_json(result_AEP_gather_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
+                    result_AEP_gather_nlp = get_description(result_AEP_gather_obj)
+                    total_cost = get_total_cost(result_AEP_gather_obj)
+                    print(total_cost)
+                    result_AEP_gather_tree = get_tree(result_AEP_gather_obj)
+                    result_AEP_gather_nlp += '\n\n' + result_AEP_gather_tree + '\n\n' + 'With Gather Merge Turned Off'
+                    db.execute_query(set_gather_merge_on)
+                    AEP_list.append(result_AEP_gather_nlp)
+                
+                elif node == 'Hash Join':
                     db.execute_query(set_hash_join_off)
-
                     result_AEP_hash = db.get_query_result(query)
                     print(result_AEP_hash)
                     result_AEP_hash_obj = json.loads(json.dumps(result_AEP_hash))
+                    parse_json_obj = parse_json(result_AEP_hash_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
                     result_AEP_hash_nlp = get_description(result_AEP_hash_obj)
                     total_cost = get_total_cost(result_AEP_hash_obj)
                     print(total_cost)
                     result_AEP_hash_tree = get_tree(result_AEP_hash_obj)
                     result_AEP_hash_nlp += '\n\n' + result_AEP_hash_tree + '\n\n' + 'With Hash Join Turned Off'
-                    set_hash_join_on = 'SET enable_hashjoin to on;'
                     db.execute_query(set_hash_join_on)
                     AEP_list.append(result_AEP_hash_nlp)
-                    break
+                
+                elif node == 'Nested Loop':
+                    db.execute_query(set_nested_loop_off)
+                    result_AEP_nested = db.get_query_result(query)
+                    print(result_AEP_nested)
+                    result_AEP_nested_obj = json.loads(json.dumps(result_AEP_nested))
+                    parse_json_obj = parse_json(result_AEP_nested_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
+                    result_AEP_nested_nlp = get_description(result_AEP_nested_obj)
+                    total_cost = get_total_cost(result_AEP_nested_obj)
+                    print(total_cost)
+                    result_AEP_nested_tree = get_tree(result_AEP_nested_obj)
+                    result_AEP_nested_nlp += '\n\n' + result_AEP_nested_tree + '\n\n' + 'With Nested Loop Turned Off'
+                    db.execute_query(set_nested_loop_on)
+                    AEP_list.append(result_AEP_nested_nlp)
+
+                elif node == 'Bitmap Heap Scan':
+                    db.execute_query(set_bitmap_scan_off)
+                    result_AEP_bitmap = db.get_query_result(query)
+                    print(result_AEP_bitmap)
+                    result_AEP_bitmap_obj = json.loads(json.dumps(result_AEP_bitmap))
+                    parse_json_obj = parse_json(result_AEP_bitmap_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
+                    result_AEP_bitmap_nlp = get_description(result_AEP_bitmap_obj)
+                    total_cost = get_total_cost(result_AEP_bitmap_obj)
+                    print(total_cost)
+                    result_AEP_bitmap_tree = get_tree(result_AEP_bitmap_obj)
+                    result_AEP_bitmap_nlp += '\n\n' + result_AEP_bitmap_tree + '\n\n' + 'With Bitmap Heap Scan Turned Off'
+                    db.execute_query(set_bitmap_scan_on)
+                    AEP_list.append(result_AEP_bitmap_nlp)
+                
+                elif node == 'Index Scan':
+                    db.execute_query(set_index_scan_off)
+                    result_AEP_index = db.get_query_result(query)
+                    print(result_AEP_index)
+                    result_AEP_index_obj = json.loads(json.dumps(result_AEP_index))
+                    parse_json_obj = parse_json(result_AEP_index_obj)
+
+                    # Get the distinct node types in the AEP
+                    aep_node_type_list.append(parse_json_obj[1])
+
+                    # Get the cost of each node type in the AEP
+                    aep_node_cost_list.append(parse_json_obj[2])
+
+                    result_AEP_index_nlp = get_description(result_AEP_index_obj)
+                    total_cost = get_total_cost(result_AEP_index_obj)
+                    print(total_cost)
+                    result_AEP_index_tree = get_tree(result_AEP_index_obj)
+                    result_AEP_index_nlp += '\n\n' + result_AEP_index_tree + '\n\n' + 'With Index Scan Turned Off'
+                    db.execute_query(set_index_scan_on)
+                    AEP_list.append(result_AEP_index_nlp)
+                
+                count += 1
+
+            # indices = [i for i, x in enumerate(query) if x == "="]
+            # print(indices)
+            # for index in indices:
+            #     print(query[index-5:index+5].replace(" ", "").replace("=", "").replace("_",""))
+            #     if (query[index-5:index+5].replace(" ", "").replace("=", "").replace("_","")).isalpha():
+            #         set_hash_join_off = 'SET enable_hashjoin to off;'
+            #         db.execute_query(set_hash_join_off)
+
+            #         result_AEP_hash = db.get_query_result(query)
+            #         print(result_AEP_hash)
+            #         result_AEP_hash_obj = json.loads(json.dumps(result_AEP_hash))
+            #         result_AEP_hash_nlp = get_description(result_AEP_hash_obj)
+            #         total_cost = get_total_cost(result_AEP_hash_obj)
+            #         print(total_cost)
+            #         result_AEP_hash_tree = get_tree(result_AEP_hash_obj)
+            #         result_AEP_hash_nlp += '\n\n' + result_AEP_hash_tree + '\n\n' + 'With Hash Join Turned Off'
+            #         set_hash_join_on = 'SET enable_hashjoin to on;'
+            #         db.execute_query(set_hash_join_on)
+            #         AEP_list.append(result_AEP_hash_nlp)
+            #         break
             #print(AEP_list[0])
             print(AEP_list)
+            print(aep_node_type_list)
+            print(aep_node_cost_list)
             for i in range(len(AEP_list)):
                 window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
             AEP_list.clear()
+            aep_node_type_list.clear()
+            aep_node_cost_list.clear()
+            count = 0
             window['-TEXT_QEP_1-'].update(qep_nlp)
             window['-TEXT_QEP_2-'].update(qep_nlp)
             window['-TEXT_QEP_3-'].update(qep_nlp)
@@ -497,7 +657,7 @@ order by
     window.close()
 
 
-def get_description( json_obj):
+def get_description(json_obj):
     descriptions = get_text(json_obj)
     result = ""
     for description in descriptions:
@@ -505,5 +665,5 @@ def get_description( json_obj):
     return result
 
 def get_tree(json_obj):
-    head = parse_json(json_obj)
+    head = parse_json(json_obj)[0]
     return generate_tree("", head)
