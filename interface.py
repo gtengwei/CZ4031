@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from preprocessing import *
 
 # Add a touch of color
-sg.theme('DarkAmber')   
+sg.theme('DarkBlue3')   
 
 # Change font and font size
 sg.set_options(font=('Helvetica', 12)) #
@@ -83,7 +83,7 @@ def build():
     frame_display_query = [
         [sg.Text('Please input your SQL query')],
         [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10))],
-        [sg.Button('Submit')],
+        [sg.Button('Submit', tooltip='Submit your query')],
         [sg.Frame("Visualise Plan", frame_display_visual_QEP)],
         
     ]
@@ -351,12 +351,7 @@ order by
     o_year desc;
     '''}
 
-    # Temporary QEP description holder, to be replaced when implementation for QEP is done
-    QEP_description_holder = '''The query is executed as follow.
-Step 1, perform a sequential lineitem search and perform a table lineitem group aggregate with a l_returnflag and l_linestatus attribute grouping to get the T1 intermediate table .
-Step 2, to obtain the final result , sort the table T1 with an attribute l_returnflag, l_linestatus .
-    '''
-    layout = 4
+
     # Display window
     while True:
         event, values = window.read()
@@ -426,6 +421,14 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
             image = ImageTk.PhotoImage(image=image)
             window['-IMAGE-'].update(data=image)
             #window['-TEXT_QEP_1-'].update(QEP_description_holder)
+            
+            # CHOSEN QEP
+            qep = db.get_query_result(query)
+            print(qep)
+            qep_obj = json.loads(json.dumps(qep))
+            qep_nlp = get_description(qep_obj)
+            qep_total_cost = get_total_cost(qep_obj)
+            qep_tree = get_tree(qep_obj)
 
             # FIRST AEP
             set_seq_off = 'SET enable_seqscan to off;'
@@ -482,17 +485,10 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
             print(AEP_list)
             for i in range(len(AEP_list)):
                 window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
-            # FINAL CHOSEN QEP
-            result_new = db.get_query_result(query)
-            print(result_new)
-            result_new_obj = json.loads(json.dumps(result_new))
-            result_new_nlp = get_description(result_new_obj)
-            total_cost = get_total_cost(result_new_obj)
-            print(total_cost)
-            result_new_tree = get_tree(result_new_obj)
-            window['-TEXT_QEP_1-'].update(result_new_nlp)
-            window['-TEXT_QEP_2-'].update(result_new_nlp)
-            window['-TEXT_QEP_3-'].update(result_new_nlp)
+            AEP_list.clear()
+            window['-TEXT_QEP_1-'].update(qep_nlp)
+            window['-TEXT_QEP_2-'].update(qep_nlp)
+            window['-TEXT_QEP_3-'].update(qep_nlp)
 
             
             
