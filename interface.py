@@ -480,11 +480,8 @@ Step 2, to obtain the final result , sort the table T1 with an attribute l_retur
                     break
             #print(AEP_list[0])
             print(AEP_list)
-            if len(AEP_list) == 3:
-                print("test")
-                window['-TEXT_AEP_1-'].update(AEP_list[0])
-                window['-TEXT_AEP_2-'].update(AEP_list[1] )
-                window['-TEXT_AEP_3-'].update(AEP_list[2] )
+            for i in range(len(AEP_list)):
+                window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
             # FINAL CHOSEN QEP
             result_new = db.get_query_result(query)
             print(result_new)
