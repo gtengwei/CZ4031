@@ -3,6 +3,8 @@ import PySimpleGUI as sg
 import time
 from PIL import Image, ImageTk
 from preprocessing import *
+from time import sleep
+import threading
 
 # Add a touch of color
 sg.theme('DarkBlue3')   
@@ -34,12 +36,20 @@ def move_center(window):
     x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
     window.move(x, y)
 
+# Update tooltip text
 def update(element, text):
     element.TooltipObject.text = text
 
+# Popup loading message
+def popup(message):
+    sg.theme('DarkGrey')
+    layout = [[sg.Text(message)]]
+    window = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True, finalize=True)
+    return window
+
 # Build the GUI
 def build():
-
+    
     # Initial frame to choose database schema
     initial_frame = [
         [sg.Text('Choose your database schema')],
@@ -113,7 +123,8 @@ def build():
      sg.Frame('User Query', frame_display_query, size=(500,HEIGHT), visible=False, key='-COL3-'),
      sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
      sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
-     sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-')]
+     sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-'),
+     sg.Text('', size=50, key='STATUS', visible=False)]
     ]
 
     margins = (2, 2)
@@ -122,6 +133,7 @@ def build():
 # Main function
 def interface(host,database,user,password):
     window = build()
+    pop_win = None
     db = Database(host,database,user,password)
     AEP_list = []
     # Query dictionary to store query
@@ -416,6 +428,9 @@ order by
             window['-COL5-'].update(visible=False)
             window['-COL6-'].update(visible=True)
 
+        if event == 'EXECUTION DONE':
+            popup_win.close()
+            popup_win = None
         # Move window to center of screen
         move_center(window)
 
@@ -431,23 +446,12 @@ order by
         query = values['-TEXT_QUERY-']
         query = 'EXPLAIN(ANALYZE, FORMAT JSON) ' + query
         
-
-        # If user clicks on the execute button, then execute the query 
-        # and show the image result in display_QEP frame and the description in display_QEP_description frame
-        if event == 'Submit':
-            print(query)
-            # TODO: implement PostsgreSQL implementation, run query and get QEP
-            image = resize_image('test.png', WIDTH, HEIGHT//2)
-            image = ImageTk.PhotoImage(image=image)
-            window['-IMAGE-'].update(data=image)
-            #window['-TEXT_QEP_1-'].update(QEP_description_holder)
-            window['-TEXT_QUERY-'].set_tooltip(dummy_text)
-
-            
-            # CHOSEN QEP
+        
+        def get_QEP_and_AEP(query):
+            count = 0
             qep = db.get_query_result(query)
             if qep == None:
-                continue
+                return None
             print(qep)
             qep_obj = json.loads(json.dumps(qep))
             parse_json_obj = parse_json(qep_obj)
@@ -654,11 +658,30 @@ order by
             window['-TEXT_QEP_2-'].update(qep_nlp)
             window['-TEXT_QEP_3-'].update(qep_nlp)
 
+            window.write_event_value('EXECUTION DONE', None)
+
+        # If user clicks on the execute button, then execute the query 
+        # and enable/disable planner options based on QEP
+        if event == 'Submit':
+            print(query)
+            # TODO: implement PostsgreSQL implementation, run query and get QEP
+            image = resize_image('test.png', WIDTH, HEIGHT//2)
+            image = ImageTk.PhotoImage(image=image)
+            window['-IMAGE-'].update(data=image)
+            #window['-TEXT_QEP_1-'].update(QEP_description_holder)
+            window['-TEXT_QUERY-'].set_tooltip(dummy_text)
+            popup_win = popup('Please wait while the query is being executed...')
+            window.force_focus()
+            
+            # CHOSEN QEP
+            threading.Thread(target= get_QEP_and_AEP, args=(query,)).start()
+
             
             
         
         # print(schema)
     window.close()
+
 
 
 def get_description(json_obj):
