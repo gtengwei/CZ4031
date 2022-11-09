@@ -576,11 +576,14 @@ class Database:
             # password="1234")
 
         #cur = conn.cursor()
+        try:
+            self.cur.execute(query)
+            rows = self.cur.fetchall()
 
-        self.cur.execute(query)
-        rows = self.cur.fetchall()
-
-        return rows[0][0][0]
+            return rows[0][0][0]
+        except Exception as e:
+            print(e)
+            return None
 
     def execute_query(self, query):
         print("Query:", query)

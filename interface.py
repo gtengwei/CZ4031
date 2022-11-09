@@ -34,6 +34,8 @@ def move_center(window):
     x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
     window.move(x, y)
 
+def update(element, text):
+    element.TooltipObject.text = text
 
 # Build the GUI
 def build():
@@ -82,7 +84,7 @@ def build():
     # Frame to show Query chosen
     frame_display_query = [
         [sg.Text('Please input your SQL query')],
-        [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10))],
+        [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10), tooltip = '')],
         [sg.Button('Submit', tooltip='Submit your query')],
         [sg.Frame("Visualise Plan", frame_display_visual_QEP)],
         
@@ -104,8 +106,6 @@ def build():
         [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_3, expand_x=True, expand_y=True)]
     ]
     
-
-
     # Layout to combine all frames
     layout = [
     [sg.Frame('Choose your database schema', initial_frame, size=(WIDTH,HEIGHT), visible=True, key='-COL1-'),
@@ -368,6 +368,7 @@ order by
     set_bitmap_scan_off = 'SET enable_bitmapscan to off;'
     set_bitmap_scan_on = 'SET enable_bitmapscan to on;'
 
+    dummy_text = 'dummy text'
     count = 0
     aep_node_type_list = []
     aep_node_cost_list = []
@@ -378,7 +379,6 @@ order by
         # End program if user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
-        
         # Go back to database schema selection window
         if event == 'Back':
             window['-COL1-'].update(visible=True)
@@ -441,9 +441,13 @@ order by
             image = ImageTk.PhotoImage(image=image)
             window['-IMAGE-'].update(data=image)
             #window['-TEXT_QEP_1-'].update(QEP_description_holder)
+            window['-TEXT_QUERY-'].set_tooltip(dummy_text)
+
             
             # CHOSEN QEP
             qep = db.get_query_result(query)
+            if qep == None:
+                continue
             print(qep)
             qep_obj = json.loads(json.dumps(qep))
             parse_json_obj = parse_json(qep_obj)
