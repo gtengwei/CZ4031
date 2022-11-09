@@ -384,6 +384,8 @@ order by
     count = 0
     aep_node_type_list = []
     aep_node_cost_list = []
+    aep_object_list = []
+    result_diff = []
     # Display window
     while True:
         event, values = window.read()
@@ -491,7 +493,8 @@ order by
                     result_AEP_seq_tree = get_tree(result_AEP_seq_obj)
                     result_AEP_seq_nlp += '\n\n' + result_AEP_seq_tree + '\n\n' + 'With Sequential Scan Turned Off'
                     db.execute_query(set_seq_on)
-                    AEP_list.append(result_AEP_seq_nlp)
+                    #AEP_list.append(result_AEP_seq_nlp)
+                    aep_object_list.append(result_AEP_seq_obj)
 
 
                 elif node == 'Sort':
@@ -515,7 +518,8 @@ order by
                     result_AEP_sort_nlp += '\n\n' + result_AEP_sort_tree + '\n\n' + 'With Sort Turned Off'
                     set_sort_on = 'SET enable_sort to on;'
                     db.execute_query(set_sort_on)
-                    AEP_list.append(result_AEP_sort_nlp)
+                    #AEP_list.append(result_AEP_sort_nlp)
+                    aep_object_list.append(result_AEP_sort_obj)
                 
                 elif node == 'Gather Merge':
                     db.execute_query(set_gather_merge_off)
@@ -536,7 +540,8 @@ order by
                     result_AEP_gather_tree = get_tree(result_AEP_gather_obj)
                     result_AEP_gather_nlp += '\n\n' + result_AEP_gather_tree + '\n\n' + 'With Gather Merge Turned Off'
                     db.execute_query(set_gather_merge_on)
-                    AEP_list.append(result_AEP_gather_nlp)
+                    #AEP_list.append(result_AEP_gather_nlp)
+                    aep_object_list.append(result_AEP_gather_obj)
                 
                 elif node == 'Hash Join':
                     db.execute_query(set_hash_join_off)
@@ -557,7 +562,8 @@ order by
                     result_AEP_hash_tree = get_tree(result_AEP_hash_obj)
                     result_AEP_hash_nlp += '\n\n' + result_AEP_hash_tree + '\n\n' + 'With Hash Join Turned Off'
                     db.execute_query(set_hash_join_on)
-                    AEP_list.append(result_AEP_hash_nlp)
+                    #AEP_list.append(result_AEP_hash_nlp)
+                    aep_object_list.append(result_AEP_hash_obj)
                 
                 elif node == 'Nested Loop':
                     db.execute_query(set_nested_loop_off)
@@ -578,7 +584,8 @@ order by
                     result_AEP_nested_tree = get_tree(result_AEP_nested_obj)
                     result_AEP_nested_nlp += '\n\n' + result_AEP_nested_tree + '\n\n' + 'With Nested Loop Turned Off'
                     db.execute_query(set_nested_loop_on)
-                    AEP_list.append(result_AEP_nested_nlp)
+                    #AEP_list.append(result_AEP_nested_nlp)
+                    aep_object_list.append(result_AEP_nested_obj)
 
                 elif node == 'Bitmap Heap Scan':
                     db.execute_query(set_bitmap_scan_off)
@@ -599,7 +606,8 @@ order by
                     result_AEP_bitmap_tree = get_tree(result_AEP_bitmap_obj)
                     result_AEP_bitmap_nlp += '\n\n' + result_AEP_bitmap_tree + '\n\n' + 'With Bitmap Heap Scan Turned Off'
                     db.execute_query(set_bitmap_scan_on)
-                    AEP_list.append(result_AEP_bitmap_nlp)
+                    #AEP_list.append(result_AEP_bitmap_nlp)
+                    aep_object_list.append(result_AEP_bitmap_obj)
                 
                 elif node == 'Index Scan':
                     db.execute_query(set_index_scan_off)
@@ -620,7 +628,8 @@ order by
                     result_AEP_index_tree = get_tree(result_AEP_index_obj)
                     result_AEP_index_nlp += '\n\n' + result_AEP_index_tree + '\n\n' + 'With Index Scan Turned Off'
                     db.execute_query(set_index_scan_on)
-                    AEP_list.append(result_AEP_index_nlp)
+                    #AEP_list.append(result_AEP_index_nlp)
+                    aep_object_list.append(result_AEP_index_obj)
                 
                 count += 1
 
@@ -648,9 +657,19 @@ order by
             print(AEP_list)
             print(aep_node_type_list)
             print(aep_node_cost_list)
-            for i in range(len(AEP_list)):
-                window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
+            # for i in range(len(AEP_list)):
+            #     window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
+
+            for object in aep_object_list:
+                result_diff.append(get_diff(qep_obj, object))
+            
+            print(result_diff)
+            for i in range(len(result_diff)):
+                window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
+
             AEP_list.clear()
+            aep_object_list.clear()
+            result_diff.clear()
             aep_node_type_list.clear()
             aep_node_cost_list.clear()
             count = 0
@@ -676,9 +695,6 @@ order by
             # CHOSEN QEP
             threading.Thread(target= get_QEP_and_AEP, args=(query,)).start()
 
-            
-            
-        
         # print(schema)
     window.close()
 
@@ -694,3 +710,7 @@ def get_description(json_obj):
 def get_tree(json_obj):
     head = parse_json(json_obj)[0]
     return generate_tree("", head)
+
+def get_difference(json_object_A, json_object_B):
+        diff = get_diff(json_object_A, json_object_B)
+        return diff
