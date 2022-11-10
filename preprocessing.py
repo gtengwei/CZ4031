@@ -4,7 +4,12 @@ import copy
 import random
 import string
 from queue import Queue
-
+from itertools import chain
+try:
+    from itertools import imap
+except ImportError:
+    # Python 3...
+    imap=map
 class Node(object):
     def __init__(self, node_type, relation_name, schema, alias, group_key, sort_key, join_type, index_name, 
             hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter, subplan_name, actual_rows,
@@ -50,6 +55,11 @@ class Node(object):
     
     def update_desc(self,desc):
         self.description = desc
+    
+    def __iter__(self):
+        for v in chain(*imap(iter, self.children)):
+            yield v
+        yield self
         
 def parse_json(data):
     q = Queue()
@@ -596,7 +606,7 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
         if QEP.total_cost < AQP.total_cost:
             text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type + ". "
         elif QEP.total_cost == AQP.total_cost:
-            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " , " + QEP.total_cost + " ,is same as " + AQP.node_type + " , with cost " + AQP.total_cost + ". " + \
+            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
                     "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
         else:
             text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
@@ -667,6 +677,7 @@ def check_why_children(QEP, AQP, reasons, QEP_cost, AQP_cost):
     print(QEP.relation_name, AQP.relation_name)
     print(QEP.hash_cond, AQP.hash_cond)
     print(QEP.merge_cond, AQP.merge_cond)
+
 
     if QEP_children_no == AQP_children_no and QEP.node_type == AQP.node_type:
         if QEP_children_no != 0:
