@@ -101,17 +101,17 @@ def build():
     ]
     
     frame_display_QEP1 = [
-       [sg.Frame("Natural Language Description of AEP 1", frame_display_AEP_description_1, expand_x=True, expand_y=True)],
+       [sg.Frame("Difference between QEP and AEP 1", frame_display_AEP_description_1, expand_x=True, expand_y=True)],
        [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
        [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_1, expand_x=True, expand_y=True)]
     ]
     frame_display_QEP2 = [
-         [sg.Frame("Natural Language Description of AEP 2", frame_display_AEP_description_2, expand_x=True, expand_y=True)],
+         [sg.Frame("Difference between QEP and AEP 2", frame_display_AEP_description_2, expand_x=True, expand_y=True)],
          [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
          [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_2, expand_x=True, expand_y=True)]
      ]
     frame_display_QEP3 = [
-        [sg.Frame("Natural Language Description of AEP 3", frame_display_AEP_description_3, expand_x=True, expand_y=True)],
+        [sg.Frame("Difference between QEP and AEP 3", frame_display_AEP_description_3, expand_x=True, expand_y=True)],
         [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
         [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_3, expand_x=True, expand_y=True)]
     ]

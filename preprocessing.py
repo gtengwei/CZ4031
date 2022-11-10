@@ -407,7 +407,9 @@ def generate_why(node_a, node_b, num):
 
         if node_a.index_cond != node_b.table_filter and int(node_a.actual_rows) < int(node_b.actual_rows):
             text += "This may be due to the selection predicates change from " + (node_a.index_cond if node_a.index_cond is not None else "None ") + " to " + (node_b.table_filter if node_b.table_filter is not None else "None ") + ". "
-        
+        if node_a.total_cost < node_b.total_cost:
+            text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
+
     elif node_b.node_type =="Index Scan" and node_a.node_type == "Seq Scan":
         text = "Reason for Difference " + str(num) + ": " 
         text += "Sequential Scan in P1 on relation " + node_a.relation_name + " has now evolved to " + node_b.node_type +" in P2 on relation " + node_b.relation_name + ". This is because "
@@ -419,7 +421,8 @@ def generate_why(node_a, node_b, num):
             text += "and the actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
         if node_a.table_filter != node_b.index_cond and int(node_a.actual_rows) > int(node_b.actual_rows):
             text += "This may be due to the selection predicate changes from " + (node_a.table_filter if node_a.table_filter is not None else "None") + " to " + (node_b.index_cond if node_b.index_cond is not None else "None") + ". "
-
+        if node_a.total_cost < node_b.total_cost:
+            text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
     elif node_a.node_type and node_b.node_type in ['Merge Join', "Hash Join", "Nested Loop"]:
         text = "Reason for Difference " + str(num) + ": " 
         if node_a.node_type == "Nested Loop" and node_b.node_type == "Merge Join":
@@ -428,6 +431,8 @@ def generate_why(node_a, node_b, num):
                 text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ", "
             if "=" in node_b.node_type:
                 text += "The join condition uses an equality operator. "
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
             text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently . "
 
         if node_a.node_type == "Nested Loop" and node_b.node_type == "Hash Join":
@@ -436,7 +441,8 @@ def generate_why(node_a, node_b, num):
                 text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
             if "=" in node_b.node_type:
                 text += "The join condition uses an equality operator. "
-                
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
         if node_a.node_type == "Merge Join" and node_b.node_type == "Nested Loop":
             text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". This is because "
             if int(node_a.actual_rows) > int(node_b.actual_rows):
@@ -444,6 +450,8 @@ def generate_why(node_a, node_b, num):
             elif int(node_a.actual_rows) < int(node_b.actual_rows):
                 text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
                 text += node_b.node_type + " joins are used  if the join condition does not use the equality operator"
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
             
         if node_a.node_type == "Merge Join" and node_b.node_type == "Hash Join":
             text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". " 
@@ -451,6 +459,8 @@ def generate_why(node_a, node_b, num):
                 text += "This is because the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
             if int(node_a.actual_rows) > int(node_b.actual_rows):
                 text += "The actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
             text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently . "
 
         if node_a.node_type == "Hash Join" and node_b.node_type == "Nested Loop":
@@ -460,6 +470,8 @@ def generate_why(node_a, node_b, num):
             elif int(node_a.actual_rows) < int(node_b.actual_rows):
                 text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
                 text += node_b.node_type + " joins are used  if the join condition does not use the equality operator"
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
 
         if node_a.node_type == "Hash Join" and node_b.node_type == "Merge Join":
             text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". " 
@@ -467,6 +479,8 @@ def generate_why(node_a, node_b, num):
                 text += "The actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
             if int(node_a.actual_rows) > int(node_b.actual_rows):
                 text += "The actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
+            if node_a.total_cost < node_b.total_cost:
+                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
             text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently. "
 
     return text
@@ -490,9 +504,9 @@ def check_children(nodeA, nodeB, difference, reasons):
 
     else:
         if nodeA.node_type == 'Hash' or nodeA.node_type == 'Sort':
-            text = 'Difference ' + \
+            text = 'Reason ' + \
                 str(num) + ' : ' + nodeA.children[0].description + \
-                ' has been changed to ' + nodeB.description
+                ' as compared to AEP with ' + nodeB.description
             text = modify_text(text)
             difference.append(text)
             reason = generate_why(nodeA.children[0], nodeB, num)
@@ -500,27 +514,65 @@ def check_children(nodeA, nodeB, difference, reasons):
             num += 1
 
         elif nodeB.node_type == 'Hash' or nodeB.node_type == 'Sort':
-            text = 'Difference ' + str(num) + ' : ' + nodeA.description + \
-                ' has been changed to ' + nodeB.children[0].description
+            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
+                ' as compared to AEP with ' + nodeB.children[0].description
             text = modify_text(text)
             difference.append(text)
             reason = generate_why(nodeA, nodeB.children[0], num)
             reasons.append(reason)
             num += 1
 
+        elif nodeA.node_type == 'Hash Join' or nodeA.node_type == 'Merge Join' or nodeA.node_type == 'Nested Loop':
+            text = 'Reason ' + str(num) + ' : ' + nodeA.children[0].description + \
+                ' as compared to AEP with ' + nodeB.children[0].description
+            text = modify_text(text)
+            difference.append(text)
+            reason = generate_why(nodeA.children[0], nodeB.children[0], num)
+            reasons.append(reason)
+            num += 1
+        
+        elif nodeB.node_type == 'Hash Join' or nodeB.node_type == 'Merge Join' or nodeB.node_type == 'Nested Loop':
+            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
+                ' as compared to AEP with ' + nodeB.children[0].description
+            text = modify_text(text)
+            difference.append(text)
+            reason = generate_why(nodeA, nodeB.children[0], num)
+            reasons.append(reason)
+            num += 1
+        
+        elif nodeA.node_type == 'Seq Scan' or nodeA.node_type == 'Index Scan' or nodeA.node_type == 'Bitmap Heap Scan':
+            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
+                ' as compared to AEP with ' + nodeB.description
+            text = modify_text(text)
+            difference.append(text)
+            reason = generate_why(nodeA, nodeB, num)
+            reasons.append(reason)
+            num += 1
+        
+        elif nodeB.node_type == 'Seq Scan' or nodeB.node_type == 'Index Scan' or nodeB.node_type == 'Bitmap Heap Scan':
+            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
+                ' as compared to AEP with ' + nodeB.description
+            text = modify_text(text)
+            difference.append(text)
+            reason = generate_why(nodeA, nodeB, num)
+            reasons.append(reason)
+            num += 1
         elif 'Gather' in nodeA.node_type:
             check_children(childrenA[0], nodeB, difference, reasons)
 
         elif 'Gather' in nodeB.node_type:
             check_children(nodeA, childrenB[0],  difference, reasons)
         else:
-            text = 'Difference ' + \
-                str(num) + ' : ' + nodeA.description + \
-                ' has been changed to ' + nodeB.description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA, nodeB, num)
-            reasons.append(reason)
+            try:
+                text = 'Reason ' + \
+                    str(num) + ' : ' + nodeA.description + \
+                    ' as compared to AEP with ' + nodeB.description
+                text = modify_text(text)
+                difference.append(text)
+                reason = generate_why(nodeA, nodeB, num)
+                reasons.append(reason)
+            except:
+                pass
             num += 1
 
         if children_no_A == children_no_B:
