@@ -463,15 +463,15 @@ order by
             qep_node_type_list = parse_json_obj[1]
 
             # Get the cost of each node type in the QEP
-            qep_node_cost_list = parse_json_obj[2]
+            qep_total_cost = parse_json_obj[2]
             print(qep_node_type_list)
             qep_nlp = get_description(qep_obj)
             qep_tree = get_tree(qep_obj)
             qep_nlp += '\n\n' + qep_tree
-            print(qep_node_cost_list)
+            print(qep_total_cost)
             for node in set(qep_node_type_list):
                 # For now, max number of AEP is 3
-                if count == 4:
+                if count == 3:
                     break
                 if node == 'Seq Scan':
                     # FIRST AEP
@@ -661,12 +661,21 @@ order by
             # for i in range(len(AEP_list)):
             #     window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
 
-            for object in aep_object_list:
-                result_diff.append(get_diff(qep_obj, object))
+            for i in range(len(aep_object_list)):
+                result_diff.append(get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i]))
+
+            # for object in aep_object_list:
+            #     result_diff.append(get_diff(qep_obj, object, qep_total_cost, aep_node_cost_list ))
             
             print(result_diff)
-            for i in range(len(result_diff)):
-                window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
+            reason_str = ""
+            for i in range (len(result_diff)):
+                for j in range (len(result_diff[i])):
+                    reason_str += result_diff[i][j] + '\n\n'
+            
+            window['-TEXT_AEP_1-'].update(reason_str)
+            # for i in range(len(result_diff)):
+            #     window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
 
             AEP_list.clear()
             aep_object_list.clear()
