@@ -13,6 +13,7 @@ sg.theme('DarkBlue3')
 sg.set_options(font=('Helvetica', 12)) #
 
 # Default size for frames, can be changed
+# WIDTH, HEIGHT = sg.Window.get_screen_size()
 WIDTH = 500
 HEIGHT = 700
 
@@ -133,7 +134,7 @@ def build():
 # Main function
 def interface(host,database,user,password):
     window = build()
-    pop_win = None
+    popup_win = None
     db = Database(host,database,user,password)
     AEP_list = []
     # Query dictionary to store query
@@ -446,7 +447,7 @@ order by
         # Query to be executed in PostgreSQL
         # IMPORTANT
         query = values['-TEXT_QUERY-']
-        query = 'EXPLAIN(ANALYZE, FORMAT JSON) ' + query
+        query = 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) ' + query
         
         
         def get_QEP_and_AEP(query):
