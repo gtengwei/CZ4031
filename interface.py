@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 import time
 from PIL import Image, ImageTk
 from preprocessing import *
-from time import sleep
+from annotation import *
 import threading
 
 # Add a touch of color
@@ -470,6 +470,64 @@ order by
             qep_nlp += '\n\n' + qep_tree
             print(qep_total_cost)
             for node in set(qep_node_type_list):
+
+                if node == 'Seq Scan':
+                    db.execute_query(set_seq_off)
+                
+                if node == 'Index Scan':
+                    db.execute_query(set_index_scan_off)
+                
+                if node == 'Hash Join':
+                    db.execute_query(set_hash_join_off)
+                
+                if node == 'Merge Join':
+                    db.execute_query(set_merge_join_off)
+                
+                if node == 'Sort':
+                    db.execute_query(set_sort_off)
+                
+                if node == 'Gather Merge':
+                    db.execute_query(set_gather_merge_off)
+                
+                if node == 'Nested Loop':
+                    db.execute_query(set_nested_loop_off)
+                
+                if node == 'Bitmap Heap Scan':
+                    db.execute_query(set_bitmap_scan_off)
+                
+            result_AEP = db.get_query_result(query)
+            print(result_AEP)
+            result_AEP_obj = json.loads(json.dumps(result_AEP))
+            parse_json_obj = parse_json(result_AEP_obj)
+
+            test = parse_json_obj[0]
+            count = 0
+            print("nodes: ", list(iter(test)))
+            # Get the distinct node types in the AEP
+            aep_node_type_list.append(parse_json_obj[1])
+
+            # Get the cost of each node type in the AEP
+            aep_node_cost_list.append(parse_json_obj[2])
+
+            result_AEP_nlp = get_description(result_AEP_obj)
+            total_cost = get_total_cost(result_AEP_obj)
+            print(total_cost)
+            result_AEP_tree = get_tree(result_AEP_obj)
+            result_AEP_nlp += '\n\n' + result_AEP_tree + '\n\n' + 'With Sequential Scan Turned Off'
+            db.execute_query(set_seq_on)
+            #AEP_list.append(result_AEP_seq_nlp)
+            aep_object_list.append(result_AEP_obj)
+
+            db.execute_query(set_seq_on)
+            db.execute_query(set_index_scan_on)
+            db.execute_query(set_hash_join_on)
+            db.execute_query(set_merge_join_on)
+            db.execute_query(set_sort_on)
+            db.execute_query(set_gather_merge_on)
+            db.execute_query(set_nested_loop_on)
+            db.execute_query(set_bitmap_scan_on)
+
+            '''
                 # For now, max number of AEP is 3
                 if count == 3:
                     break
@@ -633,7 +691,7 @@ order by
                     aep_object_list.append(result_AEP_index_obj)
                 
                 count += 1
-
+                '''
             # indices = [i for i, x in enumerate(query) if x == "="]
             # print(indices)
             # for index in indices:
@@ -657,21 +715,25 @@ order by
             #print(AEP_list[0])
             print(AEP_list)
             print(aep_node_type_list)
+            print(qep_node_type_list)
             print(aep_node_cost_list)
             # for i in range(len(AEP_list)):
             #     window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
 
             for i in range(len(aep_object_list)):
-                result_diff.append(get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i]))
+                result_diff = get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i])
 
             # for object in aep_object_list:
             #     result_diff.append(get_diff(qep_obj, object, qep_total_cost, aep_node_cost_list ))
             
             print(result_diff)
+            result_diff = list(dict.fromkeys(result_diff))
             reason_str = ""
-            for i in range (len(result_diff)):
-                for j in range (len(result_diff[i])):
-                    reason_str += result_diff[i][j] + '\n\n'
+            for i in range(len(result_diff)):
+                reason_str += result_diff[i] + '\n\n'
+            # for i in range (len(result_diff)):
+            #     for j in range (len(result_diff[i])):
+            #         reason_str += result_diff[i][j] + '\n\n'
             
             window['-TEXT_AEP_1-'].update(reason_str)
             # for i in range(len(result_diff)):
