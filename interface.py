@@ -10,7 +10,7 @@ import threading
 sg.theme('DarkBlue3')   
 
 # Change font and font size
-sg.set_options(font=('Helvetica', 12)) #
+sg.set_options(font=('Helvetica', 12))
 
 # Default size for frames, can be changed
 # WIDTH, HEIGHT = sg.Window.get_screen_size()
@@ -51,19 +51,50 @@ def popup(message):
 # Build the GUI
 def build():
     
+    button_1 = sg.Button('Node1', key='-NODE_1-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node1', visible=False)
+    button_2 = sg.Button('Node2', key='-NODE_2-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node2', visible=False)
+    button_3 = sg.Button('Node3', key='-NODE_3-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node3', visible=False)
+    button_4 = sg.Button('Node4', key='-NODE_4-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node4', visible=False)
+    button_5 = sg.Button('Node5', key='-NODE_5-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node5', visible=False)
+    button_6 = sg.Button('Node6', key='-NODE_6-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node6', visible=False)
+    button_7 = sg.Button('Node7', key='-NODE_7-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node7', visible=False)
+    button_8 = sg.Button('Node8', key='-NODE_8-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node8', visible=False)
+    button_9 = sg.Button('Node9', key='-NODE_9-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node9', visible=False)
+    button_10 = sg.Button('Node10', key='-NODE_10-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node10', visible=False)
+    button_11 = sg.Button('Node11', key='-NODE_11-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node11', visible=False)
+    button_12 = sg.Button('Node12', key='-NODE_12-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node12', visible=False)
+    button_13 = sg.Button('Node13', key='-NODE_13-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node13', visible=False)
+    button_14 = sg.Button('Node14', key='-NODE_14-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node14', visible=False)
+    button_15 = sg.Button('Node15', key='-NODE_15-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node15', visible=False)
+    button_16 = sg.Button('Node16', key='-NODE_16-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node16', visible=False)
+    button_17 = sg.Button('Node17', key='-NODE_17-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node17', visible=False)
+    button_18 = sg.Button('Node18', key='-NODE_18-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node18', visible=False)
+    button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False)
+    button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False)
+
+    button_column = sg.Column([
+                [button_20], [button_19], [button_18], [button_17], [button_16], [button_15], [button_14], [button_13], [button_12], [button_11],
+                [button_10], [button_9], [button_8], [button_7], [button_6], [button_5], [button_4], [button_3], [button_2], [button_1]],
+                pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='center', scrollable=True, size=(500, 500), key='-BUTTON_COLUMN-')
     # Initial frame to choose database schema
     initial_frame = [
         [sg.Text('Choose your database schema')],
         [sg.InputCombo(('TPC-H', 'IMDB'), size=(20, 1), key='-SCHEMA-')],
         [sg.Button('Select Database', key='-SELECT_SCHEMA-')]
     ]
-
+    frame_display_AEP_description_1 = [
+        [sg.Multiline(key='-TEXT_AEP_1-', size=(60, 18))]
+    ]
     # Frame to choose query
     frame_select_query = [
         [sg.Text('Current database schema')],
         [sg.Text(size=(12,1), key='-TEXT_SCHEMA-')],
         [sg.InputCombo(('Query1','Query2','Query3', 'Query4', 'Query5', 'Query6', 'Query7', 'Query8'), size=(20, 1), key='-QUERY-')],
-        [sg.Button('Select Query', key='-SELECT_QUERY-'), sg.Button('Back', key='Back')]
+        [sg.Button('Select Query', key='-SELECT_QUERY-'), sg.Button('Back', key='Back')],
+        [sg.Text('Please input your SQL query')],
+        [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10))],
+        [sg.Button('Submit', tooltip='Submit your query')],
+        [sg.Frame("Reasons for difference:", frame_display_AEP_description_1)]
     ]
 
     # Frame to show QEP description
@@ -89,42 +120,50 @@ def build():
     ]
 
     frame_display_visual_QEP = [
-        [sg.Image(key='-IMAGE-', expand_x=True, expand_y=True)]
+        [button_column]    
     ]
 
     # Frame to show Query chosen
-    frame_display_query = [
-        [sg.Text('Please input your SQL query')],
-        [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10), tooltip = '')],
-        [sg.Button('Submit', tooltip='Submit your query')],
-        [sg.Frame("Visualise Plan", frame_display_visual_QEP)],
+    # frame_display_query = [
+    #     [sg.Text('Please input your SQL query')],
+    #     [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10), tooltip = '')],
+    #     [sg.Button('Submit', tooltip='Submit your query')],
+    #     [sg.Frame("Visualise Plan", frame_display_visual_QEP)],
         
-    ]
+    # ]
+    # frame_display_query = [
+    #     [sg.Text('Please input your SQL query')],
+    #     [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10), tooltip = '')],
+    #     [sg.Button('Submit', tooltip='Submit your query')],
+    #     [sg.Frame("Reasons for difference:", frame_display_AEP_description_1)]
+    # ]
+    # frame_display_QEP1 = [
+    #    [sg.Frame("Difference between QEP and AEP 1", frame_display_AEP_description_1, expand_x=True, expand_y=True)],
+    #    [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+    #    [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_1, expand_x=True, expand_y=True)]
+    # ]
+    # frame_display_QEP2 = [
+    #      [sg.Frame("Difference between QEP and AEP 2", frame_display_AEP_description_2, expand_x=True, expand_y=True)],
+    #      [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+    #      [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_2, expand_x=True, expand_y=True)]
+    #  ]
+    # frame_display_QEP3 = [
+    #     [sg.Frame("Difference between QEP and AEP 3", frame_display_AEP_description_3, expand_x=True, expand_y=True)],
+    #     [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
+    #     [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_3, expand_x=True, expand_y=True)]
+    # ]
     
-    frame_display_QEP1 = [
-       [sg.Frame("Difference between QEP and AEP 1", frame_display_AEP_description_1, expand_x=True, expand_y=True)],
-       [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
-       [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_1, expand_x=True, expand_y=True)]
-    ]
-    frame_display_QEP2 = [
-         [sg.Frame("Difference between QEP and AEP 2", frame_display_AEP_description_2, expand_x=True, expand_y=True)],
-         [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
-         [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_2, expand_x=True, expand_y=True)]
-     ]
-    frame_display_QEP3 = [
-        [sg.Frame("Difference between QEP and AEP 3", frame_display_AEP_description_3, expand_x=True, expand_y=True)],
-        [sg.Button('1', key='1'), sg.Button('2', key='2'), sg.Button('3', key='3')],
-        [sg.Frame("Natural Language Description of QEP", frame_display_QEP_description_3, expand_x=True, expand_y=True)]
-    ]
-    
+
     # Layout to combine all frames
     layout = [
-    [sg.Frame('Choose your database schema', initial_frame, size=(WIDTH,HEIGHT), visible=True, key='-COL1-'),
-     sg.Frame('Database Schema', frame_select_query, size=(200,HEIGHT), visible=False, key='-COL2-'),
-     sg.Frame('User Query', frame_display_query, size=(500,HEIGHT), visible=False, key='-COL3-'),
-     sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
-     sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
-     sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-'),
+    [
+     sg.Frame('Choose your database schema', initial_frame, size=(WIDTH,HEIGHT), visible=True, key='-COL1-'),
+     sg.Frame('Database Schema', frame_select_query, size=(500,HEIGHT), visible=False, key='-COL2-'),
+    #  sg.Frame('User Query', frame_display_query, size=(500,HEIGHT), visible=False, key='-COL3-'),
+    #  sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
+    #  sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
+    #  sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-'),
+     sg.Frame('Visualise Plan', frame_display_visual_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
      sg.Text('', size=50, key='STATUS', visible=False)]
     ]
 
@@ -465,9 +504,9 @@ order by
             # Get the cost of each node type in the QEP
             qep_total_cost = parse_json_obj[2]
             print(qep_node_type_list)
-            qep_nlp = get_description(qep_obj)
-            qep_tree = get_tree(qep_obj)
-            qep_nlp += '\n\n' + qep_tree
+            # qep_nlp = get_description(qep_obj)
+            # qep_tree = get_tree(qep_obj)
+            # qep_nlp += '\n\n' + qep_tree
             print(qep_total_cost)
             for node in set(qep_node_type_list):
 
@@ -477,11 +516,11 @@ order by
                 if node == 'Index Scan':
                     db.execute_query(set_index_scan_off)
                 
-                if node == 'Hash Join':
-                    db.execute_query(set_hash_join_off)
+                # if node == 'Hash Join':
+                #     db.execute_query(set_hash_join_off)
                 
-                if node == 'Merge Join':
-                    db.execute_query(set_merge_join_off)
+                # if node == 'Merge Join':
+                #     db.execute_query(set_merge_join_off)
                 
                 if node == 'Sort':
                     db.execute_query(set_sort_off)
@@ -489,11 +528,16 @@ order by
                 if node == 'Gather Merge':
                     db.execute_query(set_gather_merge_off)
                 
-                if node == 'Nested Loop':
-                    db.execute_query(set_nested_loop_off)
+                # if node == 'Nested Loop':
+                #     db.execute_query(set_nested_loop_off)
                 
                 if node == 'Bitmap Heap Scan':
                     db.execute_query(set_bitmap_scan_off)
+                
+                if 'Hash Join' in node or 'Merge Join' in node or 'Nested Loop' in node:
+                    db.execute_query(set_hash_join_off)
+                    # db.execute_query(set_merge_join_off)
+                    # db.execute_query(set_nested_loop_off)
                 
             result_AEP = db.get_query_result(query)
             print(result_AEP)
@@ -509,12 +553,12 @@ order by
             # Get the cost of each node type in the AEP
             aep_node_cost_list.append(parse_json_obj[2])
 
-            result_AEP_nlp = get_description(result_AEP_obj)
-            total_cost = get_total_cost(result_AEP_obj)
-            print(total_cost)
-            result_AEP_tree = get_tree(result_AEP_obj)
-            result_AEP_nlp += '\n\n' + result_AEP_tree + '\n\n' + 'With Sequential Scan Turned Off'
-            db.execute_query(set_seq_on)
+            # result_AEP_nlp = get_description(result_AEP_obj)
+            # total_cost = get_total_cost(result_AEP_obj)
+            # print(total_cost)
+            # result_AEP_tree = get_tree(result_AEP_obj)
+            # result_AEP_nlp += '\n\n' + result_AEP_tree + '\n\n' + 'With Sequential Scan Turned Off'
+            # db.execute_query(set_seq_on)
             #AEP_list.append(result_AEP_seq_nlp)
             aep_object_list.append(result_AEP_obj)
 
@@ -721,16 +765,17 @@ order by
             #     window[f'-TEXT_AEP_{i+1}-'].update(AEP_list[i])
 
             for i in range(len(aep_object_list)):
-                result_diff = get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i])
+                reasons, QEP_nodes = get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i])
 
+            # testing = []
             # for object in aep_object_list:
-            #     result_diff.append(get_diff(qep_obj, object, qep_total_cost, aep_node_cost_list ))
-            
-            print(result_diff)
-            result_diff = list(dict.fromkeys(result_diff))
+            #     testing.append(get_diff(qep_obj, object ))
+            # print(testing)
+            print(reasons)
+            reasons = list(dict.fromkeys(reasons))
             reason_str = ""
-            for i in range(len(result_diff)):
-                reason_str += result_diff[i] + '\n\n'
+            for i in range(len(reasons)):
+                reason_str += reasons[i] + '\n\n'
             # for i in range (len(result_diff)):
             #     for j in range (len(result_diff[i])):
             #         reason_str += result_diff[i][j] + '\n\n'
@@ -739,16 +784,24 @@ order by
             # for i in range(len(result_diff)):
             #     window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
 
+            print(len(QEP_nodes))
+            for i in range(len(QEP_nodes)-1, -1, -1):
+                print(QEP_nodes[i].node_type)
+                window[f'-NODE_{i+1}-'].update(QEP_nodes[i].node_type)
+                window[f'-NODE_{i+1}-'].update(visible=True)
+                window[f'-NODE_{i+1}-'].set_tooltip(reasons[i])
+            window.refresh()
+            window['-BUTTON_COLUMN-'].contents_changed()
+                
             AEP_list.clear()
             aep_object_list.clear()
             result_diff.clear()
             aep_node_type_list.clear()
             aep_node_cost_list.clear()
-            count = 0
-            window['-TEXT_QEP_1-'].update(qep_nlp)
-            window['-TEXT_QEP_2-'].update(qep_nlp)
-            window['-TEXT_QEP_3-'].update(qep_nlp)
-
+            # window['-TEXT_QEP_1-'].update(qep_nlp)
+            # window['-TEXT_QEP_2-'].update(qep_nlp)
+            # window['-TEXT_QEP_3-'].update(qep_nlp)
+            window['-NODE_1-'].update(visible=False)
             window.write_event_value('EXECUTION DONE', None)
 
         # If user clicks on the execute button, then execute the query 
@@ -756,11 +809,12 @@ order by
         if event == 'Submit':
             print(query)
             # TODO: implement PostsgreSQL implementation, run query and get QEP
-            image = resize_image('test.png', WIDTH, HEIGHT//2)
-            image = ImageTk.PhotoImage(image=image)
-            window['-IMAGE-'].update(data=image)
+            # image = resize_image('test.png', WIDTH, HEIGHT//2)
+            # image = ImageTk.PhotoImage(image=image)
+            # window['-IMAGE-'].update(data=image)
+            #window['-NODE_1-'].update(visible=True)
             #window['-TEXT_QEP_1-'].update(QEP_description_holder)
-            window['-TEXT_QUERY-'].set_tooltip(dummy_text)
+            #window['-TEXT_QUERY-'].set_tooltip(dummy_text)
             popup_win = popup('Please wait while the query is being executed...')
             window.force_focus()
             
