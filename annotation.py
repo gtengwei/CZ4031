@@ -3,6 +3,7 @@ import random
 import string
 from queue import Queue
 from itertools import chain
+import fuckit
 try:
     from itertools import imap
 except ImportError:
@@ -600,73 +601,163 @@ def check_children(nodeA, nodeB, difference, reasons):
 def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     global text 
     text = ""
+    
     if QEP.node_type in ['Seq Scan', 'Index Scan', 'Bitmap Heap Scan']:
         if QEP.total_cost < AQP.total_cost:
-            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type + ". "
+            text += "Reason: " + QEP.relation_name + " is read using " + QEP.node_type + " because the cost of " + QEP.node_type + "\n"\
+                    " , which is " + str(QEP.total_cost) + " is lower than the cost of " + AQP.node_type + "\n"\
+                    " , which is " + str(AQP.total_cost) + ". "
         elif QEP.total_cost == AQP.total_cost:
-            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                    "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+            text += "Reason: Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+                    " ," + str(QEP.total_cost) + ", is equal to the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
+                    " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
-            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type + ". " + \
-                    "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+            text += "Reason: Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+                    " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + \
+                    " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
     elif QEP.node_type in ['Hash Join', 'Merge Join', 'Nested Loop']:
         if QEP.total_cost < AQP.total_cost:
             if QEP.hash_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type+ ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                            " joining " + QEP.hash_cond + " is " + str(QEP.total_cost) + \
+                            " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
+                else:
+                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                            " joining " + QEP.hash_cond + " is " + str(QEP.total_cost) + \
+                            " which is lower than the cost of using Nested Loop which is " + str(AQP.total_cost) + ". "
             elif QEP.merge_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type+ ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                            " joining " + QEP.merge_cond + " is " + str(QEP.total_cost) \
+                            + " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
+                else:
+                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                            " joining " + QEP.merge_cond + " is " + str(QEP.total_cost) + \
+                            " which is lower than the cost " + " of using Nested Loop which is " + str(AQP.total_cost) + ". "
             else:
-               text += "Reason: The cost of "+ QEP.node_type + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type+ ". "
+               text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                       " joining is " + str(QEP.total_cost) + " which is lower than the cost " + " of using " + AQP.node_type + "\n"\
+                        " which is " + str(AQP.total_cost) + ". "
     
         elif QEP.total_cost == AQP.total_cost:
             if QEP.hash_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                else:
+                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            ", is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
+                            ", followed by Memoize and Nested Loop. " + "\n"\
+                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+            
             elif QEP.merge_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " , " + str(QEP.total_cost) + "\n"\
+                            ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                else:
+                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            ", is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
+                            ", followed by Memoize and Nested Loop. " + "\n"\
+                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
+                        ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                        "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
         else:
             if QEP.hash_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
+                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining " + QEP.hash_cond + "\n"\
+                            " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
+                            ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                else:
+                    text += "Reason: Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
+                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining"+ "\n"\
+                            " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
+                            " followed by Memoize and Nested Loop, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             elif QEP.merge_cond:
-                text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                if AQP.hash_cond or AQP.merge_cond:
+                    text += "Reason: Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
+                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining " + QEP.merge_cond + "\n"\
+                            " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
+                            ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                else:
+                    text += "Reason: Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
+                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining" + "\n"\
+                            " using " + AQP.node_type + \
+                            " followed by Memoize and Nested Loop, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                text += "Reason: Although the cost of joining using " + QEP.node_type + " ," + str(QEP.total_cost) + "\n"\
+                        " ,is higher than the cost of joining using " + AQP.node_type + "\n"\
+                        " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+    
     elif QEP.node_type in ['Gather, Aggregate']:
         return text
-        
+
+    elif QEP.node_type in ['Sort', 'Incremental Sort']:
+        if QEP.total_cost < AQP.total_cost:
+            text += "Reason: This sort is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                    " sorting " + ''.join(QEP.sort_key) + " is " + str(QEP.total_cost) + " which is less than the cost " + " of using " + AQP.node_type + \
+                    " which is " + str(AQP.total_cost) + ". "
+        elif QEP.total_cost == AQP.total_cost:
+            text += "Reason: The cost of "+ QEP.node_type + " sorting " + QEP.sort_key + " , " + str(QEP.total_cost) + "\n"\
+                    " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                    "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+        else:
+           text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
+                    ", is higher than " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                    "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+    
+    
     else:
         if QEP.total_cost < AQP.total_cost:
             if QEP.relation_name:
-                text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type+ ". "
+                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                        " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type + " increases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type+ ". "
+                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                        " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
+
         elif QEP.total_cost == AQP.total_cost:
             if QEP.relation_name:
-                text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                        " which is same as the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n" \
+                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
-
-        else:   
+                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                        " which is same as the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
+                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+        else:
             if QEP.relation_name:
-                text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + "decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                        " which is higher than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
+                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type  + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
+                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                        " which is higher than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
+                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+
     return text
 
-def check_why_children(QEP, AQP, reasons, QEP_cost, AQP_cost):
+def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
     # QEP_children = QEP.children
     # AQP_children = AQP.children
     # QEP_children_no = len(QEP_children)
@@ -678,36 +769,146 @@ def check_why_children(QEP, AQP, reasons, QEP_cost, AQP_cost):
 
     QEP_children_list = list(iter(QEP))
     AQP_children_list = list(iter(AQP))
-
+    for children in QEP_children_list:
+        print("QEP",children.node_type, children.relation_name, children.hash_cond, children.merge_cond, children.join_filter)
+    
+    for children in AQP_children_list:
+        print("AQP ",children.node_type, children.relation_name, children.hash_cond, children.merge_cond, children.join_filter, children.recheck_cond)
     for qep_children in QEP_children_list:
-        print(qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+        #print(qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
         for aqp_children in AQP_children_list:
-            print(aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond)
+            #print(aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter)
             if qep_children.node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan']:
-                if qep_children.relation_name == aqp_children.relation_name:
+                if qep_children.relation_name == aqp_children.relation_name or qep_children.relation_name == aqp_children.index_name:
+                    print("In Scan")
+                    print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                    print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter)
                     reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
                     reasons.append(reason)
+                    QEP_nodes.append(qep_children)
                     break
             
-            elif qep_children.node_type == 'Index Scan':
+            if qep_children.node_type == 'Index Scan':
                 if qep_children.index_name == aqp_children.index_name or qep_children.index_name == aqp_children.relation_name:
                     reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
                     reasons.append(reason)
+                    QEP_nodes.append(qep_children)
                     break
-            elif qep_children.node_type == 'Hash Join':
-                if qep_children.hash_cond == aqp_children.hash_cond:
+            if qep_children.node_type == 'Hash Join':
+                join_cond = ''.join(sorted(qep_children.hash_cond))
+                print(join_cond)
+                if aqp_children.recheck_cond:
+                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.recheck_cond)):
+                        print("In Hash Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.merge_cond:
+                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.merge_cond)):
+                        print("In Hash Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.join_filter:
+                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.join_filter)):
+                        print("In Hash Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+
+            if qep_children.node_type == 'Merge Join':
+                join_cond = ''.join(sorted(qep_children.merge_cond))
+                print(join_cond)
+                if aqp_children.recheck_cond:
+                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.recheck_cond)):
+                        print("In Merge Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.hash_cond:
+                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.hash_cond)):
+                        print("In Merge Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.join_filter:
+                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.join_filter)):
+                        print("In Merge Join")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                
+            if qep_children.node_type == 'Nested Loop':
+                if qep_children.join_filter == aqp_children.join_filter:
                     reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
                     reasons.append(reason)
+                    QEP_nodes.append(qep_children)
                     break
-            elif qep_children.node_type == 'Merge Join':
-                if qep_children.merge_cond == aqp_children.merge_cond:
+                elif aqp_children.recheck_cond:
+                    if qep_children.join_filter == aqp_children.recheck_cond:
+                        print("In Nested Loop")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.hash_cond:
+                    if qep_children.join_filter == aqp_children.hash_cond:
+                        print("In Nested Loop")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.hash_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+                elif aqp_children.merge_cond:
+                    if qep_children.join_filter == aqp_children.merge_cond:
+                        print("In Nested Loop")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.merge_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
+        
+            if qep_children.node_type == 'Sort':
+                if qep_children.sort_key == aqp_children.sort_key:
                     reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
                     reasons.append(reason)
+                    QEP_nodes.append(qep_children)
                     break
-            elif qep_children.node_type == 'Nested Loop':
-                if qep_children.join_type == aqp_children.join_type:
+            
+            if qep_children.node_type == 'Incremental Sort':
+                if qep_children.sort_key == aqp_children.sort_key:
                     reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
                     reasons.append(reason)
+                    QEP_nodes.append(qep_children)
+                    break
+            
+            if qep_children.node_type == 'Aggregate':
+                if qep_children.group_key == aqp_children.group_key:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    QEP_nodes.append(qep_children)
                     break
 
     # if QEP_children_no == AQP_children_no and QEP.node_type == AQP.node_type:
@@ -775,14 +976,15 @@ def get_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     clear_cache()
 
     reasons = []
-    check_why_children(QEP, AQP, reasons, QEP_cost, AQP_cost)
+    QEP_nodes = []
+    check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost)
 
 
     # reason_str = ""
     # for i in range (len(reasons)):
     #     reason_str = reason_str + reasons[i] + "\n\n"
 
-    return reasons
+    return reasons, QEP_nodes
 
 
 def get_total_cost(json_obj):
