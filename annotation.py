@@ -714,12 +714,14 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     elif QEP.node_type in ['Sort', 'Incremental Sort']:
         if QEP.total_cost < AQP.total_cost:
             text += "Reason: This sort is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
-                    " sorting " + ''.join(QEP.sort_key) + " is " + str(QEP.total_cost) + " which is less than the cost " + " of using " + AQP.node_type + \
+                    " sorting " + ''.join(QEP.sort_key) + " is " + str(QEP.total_cost) + "\n"\
+                    " which is less than the cost " + " of using " + AQP.node_type + \
                     " which is " + str(AQP.total_cost) + ". "
         elif QEP.total_cost == AQP.total_cost:
             text += "Reason: The cost of "+ QEP.node_type + " sorting " + QEP.sort_key + " , " + str(QEP.total_cost) + "\n"\
                     " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                    "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                    "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
            text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
                     ", is higher than " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
