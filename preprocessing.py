@@ -609,7 +609,7 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
             text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " , " + str(QEP.total_cost) + " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + \
                     "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
         else:
-            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) + ". " + \
+            text += "Reason: The cost of "+ QEP.node_type + " on " + QEP.relation_name + " decreases from " + str(QEP.total_cost) + " to " + str(AQP.total_cost) +" using " + AQP.node_type + ". " + \
                     "However, the total cost of the QEP is " + str(QEP_cost) + " is much lower than the total cost of the AEP, which is " + str(AQP_cost) + ". "
     
     elif QEP.node_type in ['Hash Join', 'Merge Join', 'Nested Loop']:
@@ -669,72 +669,105 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     return text
 
 def check_why_children(QEP, AQP, reasons, QEP_cost, AQP_cost):
-    QEP_children = QEP.children
-    AQP_children = AQP.children
-    QEP_children_no = len(QEP_children)
-    AQP_children_no = len(AQP_children)
-    print(QEP.node_type, AQP.node_type)
-    print(QEP.relation_name, AQP.relation_name)
-    print(QEP.hash_cond, AQP.hash_cond)
-    print(QEP.merge_cond, AQP.merge_cond)
+    # QEP_children = QEP.children
+    # AQP_children = AQP.children
+    # QEP_children_no = len(QEP_children)
+    # AQP_children_no = len(AQP_children)
+    # print(QEP.node_type, AQP.node_type)
+    # print(QEP.relation_name, AQP.relation_name)
+    # print(QEP.hash_cond, AQP.hash_cond)
+    # print(QEP.merge_cond, AQP.merge_cond)
 
+    QEP_children_list = list(iter(QEP))
+    AQP_children_list = list(iter(AQP))
 
-    if QEP_children_no == AQP_children_no and QEP.node_type == AQP.node_type:
-        if QEP_children_no != 0:
-            for i in range(len(QEP_children)):
-                check_why_children(QEP_children[i], AQP_children[i], reasons, QEP_cost, AQP_cost)
+    for qep_children in QEP_children_list:
+        print(qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
+        for aqp_children in AQP_children_list:
+            print(aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond)
+            if qep_children.node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan']:
+                if qep_children.relation_name == aqp_children.relation_name:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    break
+            
+            elif qep_children.node_type == 'Index Scan':
+                if qep_children.index_name == aqp_children.index_name or qep_children.index_name == aqp_children.relation_name:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    break
+            elif qep_children.node_type == 'Hash Join':
+                if qep_children.hash_cond == aqp_children.hash_cond:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    break
+            elif qep_children.node_type == 'Merge Join':
+                if qep_children.merge_cond == aqp_children.merge_cond:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    break
+            elif qep_children.node_type == 'Nested Loop':
+                if qep_children.join_type == aqp_children.join_type:
+                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    break
+
+    # if QEP_children_no == AQP_children_no and QEP.node_type == AQP.node_type:
+    #     if QEP_children_no != 0:
+    #         for i in range(len(QEP_children)):
+    #             check_why_children(QEP_children[i], AQP_children[i], reasons, QEP_cost, AQP_cost)
     
-    else:
-        if QEP.node_type == 'Hash' or QEP.node_type == 'Sort':
-            reason = generate_why_cost(QEP.children[0], AQP, QEP_cost, AQP_cost)
-            reasons.append(reason)
+    # else:
+    #     if QEP.node_type == 'Hash' or QEP.node_type == 'Sort':
+    #         reason = generate_why_cost(QEP.children[0], AQP, QEP_cost, AQP_cost)
+    #         reasons.append(reason)
 
-        elif AQP.node_type == 'Hash' or AQP.node_type == 'Sort':
-            reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
-            reasons.append(reason)
+    #     elif AQP.node_type == 'Hash' or AQP.node_type == 'Sort':
+    #         reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
+    #         reasons.append(reason)
 
-        elif QEP.node_type == 'Hash Join' or QEP.node_type == 'Merge Join' or QEP.node_type == 'Nested Loop':
-            if QEP_children_no == 1 and AQP_children_no == 1:
-                reason = generate_why_cost(QEP.children[0], AQP.children[0], QEP_cost, AQP_cost)
-                reasons.append(reason)
-            else:
-                pass
+    #     elif QEP.node_type == 'Hash Join' or QEP.node_type == 'Merge Join' or QEP.node_type == 'Nested Loop':
+    #         if QEP_children_no == 1 and AQP_children_no == 1:
+    #             reason = generate_why_cost(QEP.children[0], AQP.children[0], QEP_cost, AQP_cost)
+    #             reasons.append(reason)
+    #         else:
+    #             pass
 
-        elif QEP.node_type == 'Seq Scan' or QEP.node_type == 'Index Scan' or QEP.node_type == 'Bitmap Heap Scan':
-            if QEP.relation_name == AQP.relation_name:
-                reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-                reasons.append(reason)
+    #     elif QEP.node_type == 'Seq Scan' or QEP.node_type == 'Index Scan' or QEP.node_type == 'Bitmap Heap Scan':
+    #         if QEP.relation_name == AQP.relation_name:
+    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
+    #             reasons.append(reason)
 
-        elif AQP.node_type == 'Hash Join' or AQP.node_type == 'Merge Join' or AQP.node_type == 'Nested Loop':
-            reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
-            reasons.append(reason)
+    #     elif AQP.node_type == 'Hash Join' or AQP.node_type == 'Merge Join' or AQP.node_type == 'Nested Loop':
+    #         reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
+    #         reasons.append(reason)
         
         
-        elif AQP.node_type == 'Seq Scan' or AQP.node_type == 'Index Scan' or AQP.node_type == 'Bitmap Heap Scan':
-            try:
-                reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-                reasons.append(reason)
-            except:
-                pass
-        elif 'Gather' in QEP.node_type:
-            check_why_children(QEP_children[0], AQP, reasons, QEP_cost, AQP_cost)
+    #     elif AQP.node_type == 'Seq Scan' or AQP.node_type == 'Index Scan' or AQP.node_type == 'Bitmap Heap Scan':
+    #         try:
+    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
+    #             reasons.append(reason)
+    #         except:
+    #             pass
+    #     elif 'Gather' in QEP.node_type:
+    #         check_why_children(QEP_children[0], AQP, reasons, QEP_cost, AQP_cost)
 
-        elif 'Gather' in AQP.node_type:
-            check_why_children(QEP, AQP_children[0], reasons, QEP_cost, AQP_cost)
-        else:
-            try:
-                reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-                reasons.append(reason)
-            except:
-                pass
+    #     elif 'Gather' in AQP.node_type:
+    #         check_why_children(QEP, AQP_children[0], reasons, QEP_cost, AQP_cost)
+    #     else:
+    #         try:
+    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
+    #             reasons.append(reason)
+    #         except:
+    #             pass
             
 
-        if QEP_children_no == AQP_children_no:
-            if QEP_children_no == 1:
-                check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
-            if QEP_children_no == 2:
-                check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
-                check_why_children(QEP_children[1], AQP_children[1], reasons, QEP_cost, AQP_cost)
+    #     if QEP_children_no == AQP_children_no:
+    #         if QEP_children_no == 1:
+    #             check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
+    #         if QEP_children_no == 2:
+    #             check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
+    #             check_why_children(QEP_children[1], AQP_children[1], reasons, QEP_cost, AQP_cost)
 
 def get_why_cost(QEP, AQP, QEP_cost, AQP_cost):
 
