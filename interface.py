@@ -785,11 +785,12 @@ order by
             #     window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
 
             print(len(QEP_nodes))
-            for i in range(len(QEP_nodes)-1, -1, -1):
+            for i in range(len(QEP_nodes)):
                 print(QEP_nodes[i].node_type)
                 window[f'-NODE_{i+1}-'].update(QEP_nodes[i].node_type)
                 window[f'-NODE_{i+1}-'].update(visible=True)
                 window[f'-NODE_{i+1}-'].set_tooltip(reasons[i])
+            
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
                 
@@ -801,7 +802,6 @@ order by
             # window['-TEXT_QEP_1-'].update(qep_nlp)
             # window['-TEXT_QEP_2-'].update(qep_nlp)
             # window['-TEXT_QEP_3-'].update(qep_nlp)
-            window['-NODE_1-'].update(visible=False)
             window.write_event_value('EXECUTION DONE', None)
 
         # If user clicks on the execute button, then execute the query 
