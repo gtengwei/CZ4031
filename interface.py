@@ -75,7 +75,7 @@ def build():
     button_column = sg.Column([
                 [button_20], [button_19], [button_18], [button_17], [button_16], [button_15], [button_14], [button_13], [button_12], [button_11],
                 [button_10], [button_9], [button_8], [button_7], [button_6], [button_5], [button_4], [button_3], [button_2], [button_1]],
-                pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='center', scrollable=True, size=(500, 500), key='-BUTTON_COLUMN-')
+                pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='top', scrollable=True, size=(500, 500), key='-BUTTON_COLUMN-')
     # Initial frame to choose database schema
     initial_frame = [
         [sg.Text('Choose your database schema')],
@@ -163,7 +163,7 @@ def build():
     #  sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
     #  sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
     #  sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-'),
-     sg.Frame('Visualise Plan', frame_display_visual_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
+     sg.Frame('Visualise Plan', frame_display_visual_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL3-'),
      sg.Text('', size=50, key='STATUS', visible=False)]
     ]
 
@@ -438,7 +438,7 @@ order by
             window['-COL1-'].update(visible=True)
             window['-COL2-'].update(visible=False)
             window['-COL3-'].update(visible=False)
-            window['-COL4-'].update(visible=False)
+            # window['-COL4-'].update(visible=False)
             window['-TEXT_QUERY-'].update('')
             window['-IMAGE-'].update('')
             window['-TEXT_QEP-'].update('')
@@ -448,13 +448,14 @@ order by
             window['-COL1-'].update(visible=False)
             window['-COL2-'].update(visible=True)
             window['-COL3-'].update(visible=True)
-            window['-COL4-'].update(visible=True)
+            # window['-COL4-'].update(visible=True)
             window['-TEXT_SCHEMA-'].update(values['-SCHEMA-'])
         
         # If user selects a query, then show the corresponding query in display_query frame
         if event == '-SELECT_QUERY-' and values['-QUERY-'] != '':
             window['-TEXT_QUERY-'].update(query_dict[values['-QUERY-']])
 
+            
         if event[0] == '1':
             window['-COL4-'].update(visible=True)
             window['-COL5-'].update(visible=False)
@@ -490,6 +491,9 @@ order by
         
         
         def get_QEP_and_AEP(query):
+            for i in range(1,21):
+                window[f'-NODE_{i}-'].update(visible=False)
+                window[f'-NODE_{i}-'].update('')
             count = 0
             qep = db.get_query_result(query)
             if qep == None:
@@ -785,15 +789,15 @@ order by
             #     window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
 
             print(len(QEP_nodes))
+            QEP_nodes.reverse()
             for i in range(len(QEP_nodes)):
                 print(QEP_nodes[i].node_type)
-                window[f'-NODE_{i+1}-'].update(QEP_nodes[i].node_type)
-                window[f'-NODE_{i+1}-'].update(visible=True)
-                window[f'-NODE_{i+1}-'].set_tooltip(reasons[i])
+                window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
+                window[f'-NODE_{20-i}-'].update(visible=True)
+                window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
             
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
-                
             AEP_list.clear()
             aep_object_list.clear()
             result_diff.clear()
