@@ -860,12 +860,13 @@ def compare_node(QEP_head, AQP_head, reasons, QEP_nodes, QEP_cost, AQP_cost):
                     QEP_nodes.append(QEP_node_list[i])
                     break
             
-            # if QEP_node_list[i].node_type == 'Aggregate':
-            #     if QEP_node_list[i].group_key == AQP_node_list[j].group_key:
-            #         reason = generate_reason(QEP_node_list[i], AQP_node_list[j], QEP_cost, AQP_cost)
-            #         reasons.append(reason)
-            #         QEP_nodes.append(QEP_node_list[i])
-            #         break
+            if QEP_node_list[i].node_type == 'Aggregate':
+                if QEP_node_list[i].group_key == AQP_node_list[j].group_key:
+                    reason = generate_reason(QEP_node_list[i], AQP_node_list[j], QEP_cost, AQP_cost)
+                    reasons.append(reason)
+                    QEP_nodes.append(QEP_node_list[i])
+                    break
+            
 
 
 def get_reason(QEP, AQP, QEP_cost, AQP_cost):

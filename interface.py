@@ -11,9 +11,9 @@ sg.theme('DarkBlue3')
 sg.set_options(font=('Helvetica', 12))
 
 # Default size for frames, can be changed
-# WIDTH, HEIGHT = sg.Window.get_screen_size()
-WIDTH = 500
-HEIGHT = 700
+WIDTH, HEIGHT = sg.Window.get_screen_size()
+# WIDTH = 500
+# HEIGHT = 700
 
 query = ''
 
@@ -63,6 +63,16 @@ def build():
     button_18 = sg.Button('Node18', key='-NODE_18-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node18', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
     button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
     button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_21 = sg.Button('Node21', key='-NODE_21-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node21', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_22 = sg.Button('Node22', key='-NODE_22-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node22', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_23 = sg.Button('Node23', key='-NODE_23-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node23', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_24 = sg.Button('Node24', key='-NODE_24-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node24', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_25 = sg.Button('Node25', key='-NODE_25-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node25', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_26 = sg.Button('Node26', key='-NODE_26-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node26', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_27 = sg.Button('Node27', key='-NODE_27-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node27', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_28 = sg.Button('Node28', key='-NODE_28-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node28', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_29 = sg.Button('Node29', key='-NODE_29-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node29', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_30 = sg.Button('Node30', key='-NODE_30-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node30', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
 
     arrow_1 = sg.Button('↑', key='-ARROW_1-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
     arrow_2 = sg.Button('↑', key='-ARROW_2-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
@@ -83,8 +93,20 @@ def build():
     arrow_17 = sg.Button('↑', key='-ARROW_17-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
     arrow_18 = sg.Button('↑', key='-ARROW_18-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
     arrow_19 = sg.Button('↑', key='-ARROW_19-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
-    
+    arrow_20 = sg.Button('↑', key='-ARROW_20-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_21 = sg.Button('↑', key='-ARROW_21-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_22 = sg.Button('↑', key='-ARROW_22-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_23 = sg.Button('↑', key='-ARROW_23-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_24 = sg.Button('↑', key='-ARROW_24-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_25 = sg.Button('↑', key='-ARROW_25-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_26 = sg.Button('↑', key='-ARROW_26-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_27 = sg.Button('↑', key='-ARROW_27-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_28 = sg.Button('↑', key='-ARROW_28-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_29 = sg.Button('↑', key='-ARROW_29-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+
     button_column = sg.Column([
+                [button_30], [arrow_29], [button_29], [arrow_28], [button_28], [arrow_27], [button_27], [arrow_26], [button_26], [arrow_25], 
+                [button_25], [arrow_24], [button_24], [arrow_23], [button_23], [arrow_22], [button_22], [arrow_21], [button_21], [arrow_20], 
                 [button_20], [arrow_19], [button_19], [arrow_18], [button_18], [arrow_17], [button_17], [arrow_16], [button_16], [arrow_15], 
                 [button_15], [arrow_14], [button_14], [arrow_13], [button_13], [arrow_12], [button_12], [arrow_11], [button_11], [arrow_10],
                 [button_10], [arrow_9], [button_9], [arrow_8], [button_8], [arrow_7], [button_7], [arrow_6], [button_6], [arrow_5],
@@ -409,7 +431,7 @@ order by
             popup_win.close()
             popup_win = None
         # Move window to center of screen
-        move_center(window)
+        # move_center(window)
 
 
         # Query to be executed in PostgreSQL
@@ -419,11 +441,11 @@ order by
         
         def reset_visualisation():
             window['-TEXT_QEP-' ].update('')
-            for i in range(1,21):
+            for i in range(1,31):
                 window[f'-NODE_{i}-'].update(visible=False)
                 window[f'-NODE_{i}-'].update('')
             
-            for i in range(1,20):
+            for i in range(1,30):
                 window[f'-ARROW_{i}-'].update(visible=False)
         
         def visualise_plan(qep_nlp, reasons, QEP_nodes):
@@ -434,18 +456,18 @@ order by
                     print(QEP_nodes[i].node_type)
                     print(i)
                     if QEP_nodes[i].node_type == 'Index Scan' and QEP_nodes[i].index_cond:
-                        window[f'-NODE_{20-i}-'].update('Nested Loop')
-                        window[f'-NODE_{20-i}-'].update(visible=True)
-                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                        window[f'-NODE_{30-i}-'].update('Nested Loop')
+                        window[f'-NODE_{30-i}-'].update(visible=True)
+                        window[f'-NODE_{30-i}-'].set_tooltip(reasons[i])
                     
                     else:
-                        window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
-                        window[f'-NODE_{20-i}-'].update(visible=True)
-                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                        window[f'-NODE_{30-i}-'].update(QEP_nodes[i].node_type)
+                        window[f'-NODE_{30-i}-'].update(visible=True)
+                        window[f'-NODE_{30-i}-'].set_tooltip(reasons[i])
  
 
             for i in range(len(QEP_nodes)-1):
-                window[f'-ARROW_{19-i}-'].update(visible=True)
+                window[f'-ARROW_{29-i}-'].update(visible=True)
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
         
