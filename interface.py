@@ -379,9 +379,9 @@ order by
     set_bitmap_scan_off = 'SET enable_bitmapscan to off;'
     set_bitmap_scan_on = 'SET enable_bitmapscan to on;'
 
-    aep_node_type_list = []
-    aep_node_cost_list = []
-    aep_object_list = []
+    aqp_node_type_list = []
+    aqp_node_cost_list = []
+    aqp_object_list = []
     # Display window
     while True:
         event, values = window.read()
@@ -414,21 +414,44 @@ order by
         query = values['-TEXT_QUERY-']
         query = 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) ' + query
         
-        
-        def get_QEP_and_AEP(query):
+        def reset_node():
             for i in range(1,21):
                 window[f'-NODE_{i}-'].update(visible=False)
                 window[f'-NODE_{i}-'].update('')
             
             for i in range(1,20):
                 window[f'-ARROW_{i}-'].update(visible=False)
+        
+        def visualise_plan(reasons, QEP_nodes):
+            QEP_nodes.reverse()
+            reasons.reverse()
+            for i in range(len(QEP_nodes)):
+                    print(QEP_nodes[i].node_type)
+                    print(i)
+                    if QEP_nodes[i].node_type == 'Index Scan' and QEP_nodes[i].index_cond:
+                        window[f'-NODE_{20-i}-'].update('Nested Loop')
+                        window[f'-NODE_{20-i}-'].update(visible=True)
+                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                    
+                    else:
+                        window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
+                        window[f'-NODE_{20-i}-'].update(visible=True)
+                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+ 
+
+            for i in range(len(QEP_nodes)-1):
+                window[f'-ARROW_{19-i}-'].update(visible=True)
+
+        def get_QEP_and_AEP(query):
+        
+            reset_node()
             window['-TEXT_AEP_1-' ].update('')
             qep = db.get_query_result(query)
             if qep == None:
                 return None
             print(qep)
-            qep_obj = json.loads(json.dumps(qep))
-            parse_json_obj = parse_json(qep_obj)
+            #qep_obj = json.loads(json.dumps(qep))
+            parse_json_obj = parse_json(qep)
 
             # Get the distinct node types in the QEP
             qep_node_type_list = parse_json_obj[1]
@@ -436,7 +459,7 @@ order by
             # Get the cost of each node type in the QEP
             qep_total_cost = parse_json_obj[2]
             print(qep_node_type_list)
-            qep_nlp = get_description(qep_obj)
+            qep_nlp = get_description(qep)
 
             print(qep_total_cost)
             for node in set(qep_node_type_list):
@@ -470,18 +493,18 @@ order by
                 #     # db.execute_query(set_merge_join_off)
                 #     # db.execute_query(set_nested_loop_off)
                 
-            result_AEP = db.get_query_result(query)
-            print(result_AEP)
-            result_AEP_obj = json.loads(json.dumps(result_AEP))
-            parse_json_obj = parse_json(result_AEP_obj)
+            aqp = db.get_query_result(query)
+            print(aqp)
+            #result_AEP_obj = json.loads(json.dumps(result_AEP))
+            parse_json_obj = parse_json(aqp)
 
             # Get the distinct node types in the AEP
-            aep_node_type_list.append(parse_json_obj[1])
+            aqp_node_type_list.append(parse_json_obj[1])
 
             # Get the cost of each node type in the AEP
-            aep_node_cost_list.append(parse_json_obj[2])
+            aqp_node_cost_list.append(parse_json_obj[2])
 
-            aep_object_list.append(result_AEP_obj)
+            aqp_object_list.append(aqp)
 
             db.execute_query(set_seq_on)
             db.execute_query(set_index_scan_on)
@@ -494,13 +517,13 @@ order by
 
             
             print(AEP_list)
-            print(aep_node_type_list)
+            print(aqp_node_type_list)
             print(qep_node_type_list)
-            print(aep_node_cost_list)
+            print(aqp_node_cost_list)
   
 
-            for i in range(len(aep_object_list)):
-                reasons, QEP_nodes = get_why_cost(qep_obj, aep_object_list[i], qep_total_cost, aep_node_cost_list[i])
+            for i in range(len(aqp_object_list)):
+                reasons, QEP_nodes = get_reason(qep, aqp_object_list[i], qep_total_cost, aqp_node_cost_list[i])
 
             
             print(reasons)
@@ -512,31 +535,14 @@ order by
     
             print(len(QEP_nodes))
             print(len(reasons))
-            QEP_nodes.reverse()
-            reasons.reverse()
-            for i in range(len(QEP_nodes)):
-                    print(QEP_nodes[i].node_type)
-                    print(i)
-                    if QEP_nodes[i].node_type == 'Index Scan' and QEP_nodes[i].index_cond:
-                        window[f'-NODE_{20-i}-'].update('Nested Loop')
-                        window[f'-NODE_{20-i}-'].update(visible=True)
-                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
-                    
-                    else:
-                        window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
-                        window[f'-NODE_{20-i}-'].update(visible=True)
-                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
- 
-
-            for i in range(len(QEP_nodes)-1):
-                window[f'-ARROW_{19-i}-'].update(visible=True)
+            visualise_plan(reasons, QEP_nodes)
 
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
             AEP_list.clear()
-            aep_object_list.clear()
-            aep_node_type_list.clear()
-            aep_node_cost_list.clear()
+            aqp_object_list.clear()
+            aqp_node_type_list.clear()
+            aqp_node_cost_list.clear()
             reasons.clear()
 
             window.write_event_value('EXECUTION DONE', None)
