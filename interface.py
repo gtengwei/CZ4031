@@ -513,8 +513,14 @@ order by
         def get_QEP_and_AEP(query):
         
             reset_visualisation()
+            try:
+                qep = db.get_query_result(query)
             
-            qep = db.get_query_result(query)
+            except Exception as e:
+                print('test')
+                print(e)
+                sg.popup_error(e)
+                return
             if qep == None:
                 return None
             print(qep)
@@ -582,6 +588,9 @@ order by
         # and enable/disable planner options based on QEP
         if event == 'Submit':
             print(query)
+            if query == 'EXPLAIN (COSTS, VERBOSE, BUFFERS, FORMAT JSON) ':
+                print('test')
+                continue
             popup_win = popup('Please wait while the query is being executed...')
             window.force_focus()
             
