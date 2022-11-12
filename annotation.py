@@ -3,7 +3,6 @@ import random
 import string
 from queue import Queue
 from itertools import chain
-import fuckit
 try:
     from itertools import imap
 except ImportError:
@@ -604,16 +603,19 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     
     if QEP.node_type in ['Seq Scan', 'Index Scan', 'Bitmap Heap Scan']:
         if QEP.total_cost < AQP.total_cost:
-            text += "Reason: " + QEP.relation_name + " is read using " + QEP.node_type + " because the cost of " + QEP.node_type + "\n"\
+            text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n" \
+                    " The cost of " + QEP.node_type + \
                     " , which is " + str(QEP.total_cost) + " is lower than the cost of " + AQP.node_type + "\n"\
                     " , which is " + str(AQP.total_cost) + ". "
         elif QEP.total_cost == AQP.total_cost:
-            text += "Reason: Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+            text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n"\
+                    " Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
                     " ," + str(QEP.total_cost) + ", is equal to the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
                     " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
-            text += "Reason: Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+            text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n"\
+                    " Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
                     " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
                     " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
@@ -622,88 +624,103 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
         if QEP.total_cost < AQP.total_cost:
             if QEP.hash_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " The cost of "+ QEP.node_type + \
                             " joining " + QEP.hash_cond + " is " + str(QEP.total_cost) + \
                             " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
                 else:
-                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n" \
+                            " The cost of "+ QEP.node_type + "\n"\
                             " joining " + QEP.hash_cond + " is " + str(QEP.total_cost) + \
                             " which is lower than the cost of using Nested Loop which is " + str(AQP.total_cost) + ". "
             elif QEP.merge_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
-                            " joining " + QEP.merge_cond + " is " + str(QEP.total_cost) \
+                    text += " This join is implemented using " + QEP.node_type + " because: \n" \
+                            " The cost of "+ QEP.node_type + \
+                            " joining " + QEP.merge_cond + " is " + str(QEP.total_cost) + "\n"\
                             + " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
                 else:
-                    text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n" \
+                            " The cost of "+ QEP.node_type + "\n"\
                             " joining " + QEP.merge_cond + " is " + str(QEP.total_cost) + \
                             " which is lower than the cost " + " of using Nested Loop which is " + str(AQP.total_cost) + ". "
             else:
-               text += "Reason: This join is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+               text += " This join is implemented using " + QEP.node_type + " because: \n" \
+                       " The cost of "+ QEP.node_type + "\n"\
                        " joining is " + str(QEP.total_cost) + " which is lower than the cost " + " of using " + AQP.node_type + "\n"\
-                        " which is " + str(AQP.total_cost) + ". "
+                       " which is " + str(AQP.total_cost) + ". "
     
         elif QEP.total_cost == AQP.total_cost:
             if QEP.hash_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
-                            ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            " , is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
+                            " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
                 else:
-                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
-                            ", is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
-                            ", followed by Memoize and Nested Loop. " + "\n"\
-                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            " , is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
+                            " , followed by Memoize and Nested Loop. " + "\n"\
+                            " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             
             elif QEP.merge_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " , " + str(QEP.total_cost) + "\n"\
-                            ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of "+ QEP.node_type + " joining " + QEP.merge_cond + " , " + str(QEP.total_cost) + "\n"\
+                            " , is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ", " + "\n"\
+                            " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
                 else:
-                    text += "Reason: The cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
-                            ", is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
-                            ", followed by Memoize and Nested Loop. " + "\n"\
-                            "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of "+ QEP.node_type + " joining " + QEP.hash_cond + " , " + str(QEP.total_cost) + "\n"\
+                            " , is same as "+ AQP.node_type + " , with cost " + str(AQP.total_cost) + "\n"\
+                            " , followed by Memoize and Nested Loop, " + "\n"\
+                            " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
-                        ", is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                        "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                        " Although the cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
+                        " , is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ", " + "\n"\
+                        " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                         " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
         else:
             if QEP.hash_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
                             " ," + str(QEP.total_cost) + ", is higher than the cost of joining " + QEP.hash_cond + "\n"\
                             " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
-                            ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " , the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
                 else:
-                    text += "Reason: Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
                             " ," + str(QEP.total_cost) + ", is higher than the cost of joining"+ \
                             " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
                             " followed by Memoize and Nested Loop, \n the total cost of the QEP is " + str(QEP_cost) + \
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             elif QEP.merge_cond:
                 if AQP.hash_cond or AQP.merge_cond:
-                    text += "Reason: Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
                             " ," + str(QEP.total_cost) + ", is higher than the cost of joining " + QEP.merge_cond + "\n"\
                             " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
-                            ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " , the total cost of the QEP is " + str(QEP_cost) + "\n"\
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
                 else:
-                    text += "Reason: Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
+                    text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                            " Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
                             " ," + str(QEP.total_cost) + ", is higher than the cost of joining" + "\n"\
                             " using " + AQP.node_type + \
                             " followed by Memoize and Nested Loop, \nthe total cost of the QEP is " + str(QEP_cost) + \
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: Although the cost of joining using " + QEP.node_type + " ," + str(QEP.total_cost) + "\n"\
+                text += " This join is implemented using " + QEP.node_type + " because: \n"\
+                        " Although the cost of joining using " + QEP.node_type + " ," + str(QEP.total_cost) + "\n"\
                         " ,is higher than the cost of joining using " + AQP.node_type + "\n"\
                         " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                         " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
@@ -721,49 +738,52 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
 
         print(QEP.sort_key)
         if QEP.total_cost < AQP.total_cost:
-            text += "Reason: This sort is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
+            text += " This sort is implemented using " + QEP.node_type + " because: \n" \
+                    " The cost of "+ QEP.node_type + \
                     " sorting " + ' '.join(QEP.sort_key) + " is " + str(QEP.total_cost) + "\n"\
                     " which is less than the cost " + " of using " + AQP.node_type + \
                     " which is " + str(AQP.total_cost) + ". "
         elif QEP.total_cost == AQP.total_cost:
-            text += "Reason: The cost of "+ QEP.node_type + " sorting " + QEP.sort_key + " , " + str(QEP.total_cost) + "\n"\
-                    " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                    "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
-                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+            text += " This sort is implemented using " + QEP.node_type + " because: \n"\
+                    " Although the cost of "+ QEP.node_type + " sorting " + QEP.sort_key + " , " + str(QEP.total_cost) + "\n"\
+                    " ,is same as " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ", " + "\n"\
+                    " the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                    " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
-           text += "Reason: The cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
-                    ", is higher than " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ". " + "\n"\
-                    "However, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+           text +=  " This sort is implemented using " + QEP.node_type + " because: \n"\
+                    " Although the cost of "+ QEP.node_type + " , " + str(QEP.total_cost) + "\n"\
+                    " , is higher than " + AQP.node_type + " , with cost " + str(AQP.total_cost) + ", " + "\n"\
+                    " the total cost of the QEP is " + str(QEP_cost) + "\n"\
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
     
     else:
         if QEP.total_cost < AQP.total_cost:
             if QEP.relation_name:
-                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
                         " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
             else:
-                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
                         " which is lower than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
 
         elif QEP.total_cost == AQP.total_cost:
             if QEP.relation_name:
-                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
                         " which is same as the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n" \
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                        " However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
                         " which is same as the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                        " However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
             if QEP.relation_name:
-                text += "Reason: The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " on " + QEP.relation_name + " is " + str(QEP.total_cost) + "\n"\
                         " which is higher than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                        " However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
-                text += "Reason: The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                text += " The cost of " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
                         " which is higher than the cost of using " + AQP.node_type + " which is " + str(AQP.total_cost) + ". " + "\n"\
-                        "However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+                        " However, the total cost of the QEP is " + str(QEP_cost) + " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
 
     return text
 
