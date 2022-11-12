@@ -1,6 +1,5 @@
 from winreg import QueryInfoKey
 import PySimpleGUI as sg
-import time
 from PIL import Image, ImageTk
 from preprocessing import *
 from annotation import *
@@ -51,26 +50,26 @@ def popup(message):
 # Build the GUI
 def build():
     
-    button_1 = sg.Button('Node1', key='-NODE_1-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node1', visible=False)
-    button_2 = sg.Button('Node2', key='-NODE_2-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node2', visible=False)
-    button_3 = sg.Button('Node3', key='-NODE_3-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node3', visible=False)
-    button_4 = sg.Button('Node4', key='-NODE_4-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node4', visible=False)
-    button_5 = sg.Button('Node5', key='-NODE_5-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node5', visible=False)
-    button_6 = sg.Button('Node6', key='-NODE_6-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node6', visible=False)
-    button_7 = sg.Button('Node7', key='-NODE_7-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node7', visible=False)
-    button_8 = sg.Button('Node8', key='-NODE_8-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node8', visible=False)
-    button_9 = sg.Button('Node9', key='-NODE_9-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node9', visible=False)
-    button_10 = sg.Button('Node10', key='-NODE_10-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node10', visible=False)
-    button_11 = sg.Button('Node11', key='-NODE_11-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node11', visible=False)
-    button_12 = sg.Button('Node12', key='-NODE_12-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node12', visible=False)
-    button_13 = sg.Button('Node13', key='-NODE_13-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node13', visible=False)
-    button_14 = sg.Button('Node14', key='-NODE_14-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node14', visible=False)
-    button_15 = sg.Button('Node15', key='-NODE_15-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node15', visible=False)
-    button_16 = sg.Button('Node16', key='-NODE_16-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node16', visible=False)
-    button_17 = sg.Button('Node17', key='-NODE_17-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node17', visible=False)
-    button_18 = sg.Button('Node18', key='-NODE_18-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node18', visible=False)
-    button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False)
-    button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False)
+    button_1 = sg.Button('Node1', key='-NODE_1-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node1', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_2 = sg.Button('Node2', key='-NODE_2-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node2', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_3 = sg.Button('Node3', key='-NODE_3-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node3', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_4 = sg.Button('Node4', key='-NODE_4-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node4', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_5 = sg.Button('Node5', key='-NODE_5-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node5', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_6 = sg.Button('Node6', key='-NODE_6-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node6', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_7 = sg.Button('Node7', key='-NODE_7-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node7', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_8 = sg.Button('Node8', key='-NODE_8-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node8', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_9 = sg.Button('Node9', key='-NODE_9-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node9', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_10 = sg.Button('Node10', key='-NODE_10-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node10', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_11 = sg.Button('Node11', key='-NODE_11-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node11', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_12 = sg.Button('Node12', key='-NODE_12-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node12', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_13 = sg.Button('Node13', key='-NODE_13-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node13', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_14 = sg.Button('Node14', key='-NODE_14-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node14', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_15 = sg.Button('Node15', key='-NODE_15-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node15', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_16 = sg.Button('Node16', key='-NODE_16-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node16', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_17 = sg.Button('Node17', key='-NODE_17-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node17', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_18 = sg.Button('Node18', key='-NODE_18-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node18', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
+    button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False, disabled=True, disabled_button_color=('white', '#404040'))
 
     arrow_1 = sg.Button('↑', key='-ARROW_1-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
     arrow_2 = sg.Button('↑', key='-ARROW_2-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
@@ -97,7 +96,7 @@ def build():
                 [button_15], [arrow_14], [button_14], [arrow_13], [button_13], [arrow_12], [button_12], [arrow_11], [button_11], [arrow_10],
                 [button_10], [arrow_9], [button_9], [arrow_8], [button_8], [arrow_7], [button_7], [arrow_6], [button_6], [arrow_5],
                 [button_5], [arrow_4], [button_4], [arrow_3], [button_3], [arrow_2], [button_2], [arrow_1], [button_1]],
-                pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='top', scrollable=True, size=(500, 500), key='-BUTTON_COLUMN-')
+                pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='top', scrollable=True, vertical_scroll_only=True, size=(500, 500), key='-BUTTON_COLUMN-')
     # Initial frame to choose database schema
     initial_frame = [
         [sg.Text('Choose your database schema')],
@@ -185,7 +184,7 @@ def build():
     #  sg.Frame('AEP AND QEP', frame_display_QEP1, size=(WIDTH,HEIGHT), visible=False, key='-COL4-'),
     #  sg.Frame('AEP AND QEP', frame_display_QEP2, size=(WIDTH,HEIGHT), visible=False, key='-COL5-'),
     #  sg.Frame('AEP AND QEP', frame_display_QEP3, size=(WIDTH,HEIGHT), visible=False, key='-COL6-'),
-     sg.Frame('Visualise Plan', frame_display_visual_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL3-'),
+     sg.Frame('QEP Visualise Plan', frame_display_visual_QEP, size=(WIDTH,HEIGHT), visible=False, key='-COL3-'),
      sg.Text('', size=50, key='STATUS', visible=False)]
     ]
 
