@@ -8,7 +8,7 @@ except ImportError:
 class Node(object):
     def __init__(self, node_type, relation_name, schema, alias, group_key, sort_key, join_type, index_name, 
             hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter, subplan_name, actual_rows,
-            actual_time,description, cost, parent_relationship):
+            description, cost, parent_relationship):
         self.node_type = node_type
         self.children = []
         self.relation_name = relation_name
@@ -26,7 +26,6 @@ class Node(object):
         self.join_filter = join_filter
         self.subplan_name = subplan_name
         self.actual_rows = actual_rows
-        self.actual_time = actual_time
         self.description = description
         self.cost = cost
         self.parent_relationship = parent_relationship
@@ -72,7 +71,7 @@ def parse_json(data):
 
         relation_name = schema = alias = group_key = sort_key = join_type = index_name = hash_cond = table_filter \
         = index_cond = merge_cond = recheck_cond = join_filter = subplan_name \
-        = actual_rows = actual_time = description = parent_relationship = None
+        = actual_rows = description = parent_relationship = None
         cost = 0
         if 'Relation Name' in current_plan:
             relation_name = current_plan['Relation Name']
@@ -102,8 +101,6 @@ def parse_json(data):
             join_filter = current_plan['Join Filter']
         if 'Actual Rows' in current_plan:
             actual_rows = current_plan['Actual Rows']
-        if 'Actual Total Time' in current_plan:
-            actual_time = current_plan['Actual Total Time']
         if 'Subplan Name' in current_plan:
             if "returns" in current_plan['Subplan Name']:
                 name = current_plan['Subplan Name']
@@ -118,7 +115,7 @@ def parse_json(data):
 
         current_node = Node(current_plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter,
-                            subplan_name, actual_rows, actual_time, description, cost, parent_relationship)
+                            subplan_name, actual_rows, description, cost, parent_relationship)
         node_type_list.append(current_node.node_type)
         node_total_cost += current_node.cost
 
@@ -156,7 +153,6 @@ def simplify_graph(node):
     for child in node.children:
         new_child = simplify_graph(child)
         new_node.add_children(new_child)
-        new_node.actual_time -= child.actual_time
 
     if node.node_type in ["Result"]:
         return node.children[0]
