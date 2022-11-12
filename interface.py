@@ -96,8 +96,8 @@ def build():
         [sg.InputCombo(('TPC-H', 'IMDB'), size=(20, 1), key='-SCHEMA-')],
         [sg.Button('Select Database', key='-SELECT_SCHEMA-')]
     ]
-    frame_display_AEP_description_1 = [
-        [sg.Multiline(key='-TEXT_AEP_1-', size=(60, 18))]
+    frame_display_QEP_description = [
+        [sg.Multiline(key='-TEXT_QEP-', size=(60, 18))]
     ]
     # Frame to choose query
     frame_select_query = [
@@ -108,7 +108,7 @@ def build():
         [sg.Text('Please input your SQL query')],
         [sg.Multiline(key='-TEXT_QUERY-', size=(60, 10))],
         [sg.Button('Submit', tooltip='Submit your query')],
-        [sg.Frame("Reasons for difference:", frame_display_AEP_description_1)]
+        [sg.Frame("QEP Step-By-Step NLP:", frame_display_QEP_description)]
     ]
 
 
@@ -412,9 +412,10 @@ order by
         # Query to be executed in PostgreSQL
         # IMPORTANT
         query = values['-TEXT_QUERY-']
-        query = 'EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) ' + query
+        query = 'EXPLAIN (COSTS, VERBOSE, BUFFERS, FORMAT JSON) ' + query
         
-        def reset_node():
+        def reset_visualisation():
+            window['-TEXT_QEP-' ].update('')
             for i in range(1,21):
                 window[f'-NODE_{i}-'].update(visible=False)
                 window[f'-NODE_{i}-'].update('')
@@ -422,7 +423,8 @@ order by
             for i in range(1,20):
                 window[f'-ARROW_{i}-'].update(visible=False)
         
-        def visualise_plan(reasons, QEP_nodes):
+        def visualise_plan(qep_nlp, reasons, QEP_nodes):
+            window['-TEXT_QEP-'].update(qep_nlp)
             QEP_nodes.reverse()
             reasons.reverse()
             for i in range(len(QEP_nodes)):
@@ -441,29 +443,11 @@ order by
 
             for i in range(len(QEP_nodes)-1):
                 window[f'-ARROW_{19-i}-'].update(visible=True)
-
-        def get_QEP_and_AEP(query):
+            window.refresh()
+            window['-BUTTON_COLUMN-'].contents_changed()
         
-            reset_node()
-            window['-TEXT_AEP_1-' ].update('')
-            qep = db.get_query_result(query)
-            if qep == None:
-                return None
-            print(qep)
-            #qep_obj = json.loads(json.dumps(qep))
-            parse_json_obj = parse_json(qep)
-
-            # Get the distinct node types in the QEP
-            qep_node_type_list = parse_json_obj[1]
-
-            # Get the cost of each node type in the QEP
-            qep_total_cost = parse_json_obj[2]
-            print(qep_node_type_list)
-            qep_nlp = get_description(qep)
-
-            print(qep_total_cost)
+        def planner_method_off(qep_node_type_list):
             for node in set(qep_node_type_list):
-
                 if node == 'Seq Scan':
                     db.execute_query(set_seq_off)
                 
@@ -492,7 +476,37 @@ order by
                 #     db.execute_query(set_hash_join_off)
                 #     # db.execute_query(set_merge_join_off)
                 #     # db.execute_query(set_nested_loop_off)
-                
+        def planner_method_on():
+            db.execute_query(set_seq_on)
+            db.execute_query(set_index_scan_on)
+            db.execute_query(set_hash_join_on)
+            db.execute_query(set_merge_join_on)
+            db.execute_query(set_sort_on)
+            db.execute_query(set_gather_merge_on)
+            db.execute_query(set_nested_loop_on)
+            db.execute_query(set_bitmap_scan_on)
+        def get_QEP_and_AEP(query):
+        
+            reset_visualisation()
+            
+            qep = db.get_query_result(query)
+            if qep == None:
+                return None
+            print(qep)
+            #qep_obj = json.loads(json.dumps(qep))
+            parse_json_obj = parse_json(qep)
+
+            # Get the distinct node types in the QEP
+            qep_node_type_list = parse_json_obj[1]
+
+            # Get the cost of each node type in the QEP
+            qep_total_cost = parse_json_obj[2]
+            print(qep_node_type_list)
+            qep_nlp = get_description(qep)
+
+            print(qep_total_cost)
+            planner_method_off(qep_node_type_list)
+
             aqp = db.get_query_result(query)
             print(aqp)
             #result_AEP_obj = json.loads(json.dumps(result_AEP))
@@ -506,14 +520,7 @@ order by
 
             aqp_object_list.append(aqp)
 
-            db.execute_query(set_seq_on)
-            db.execute_query(set_index_scan_on)
-            db.execute_query(set_hash_join_on)
-            db.execute_query(set_merge_join_on)
-            db.execute_query(set_sort_on)
-            db.execute_query(set_gather_merge_on)
-            db.execute_query(set_nested_loop_on)
-            db.execute_query(set_bitmap_scan_on)
+            planner_method_on()
 
             
             print(AEP_list)
@@ -527,18 +534,17 @@ order by
 
             
             print(reasons)
-            reason_str = ""
-            for i in range(len(reasons)):
-                reason_str += reasons[i] + '\n\n'
+            # reason_str = ""
+            # for i in range(len(reasons)):
+            #     reason_str += reasons[i] + '\n\n'
   
-            window['-TEXT_AEP_1-'].update(reason_str)
+            
     
             print(len(QEP_nodes))
             print(len(reasons))
-            visualise_plan(reasons, QEP_nodes)
+            visualise_plan(qep_nlp, reasons, QEP_nodes)
 
-            window.refresh()
-            window['-BUTTON_COLUMN-'].contents_changed()
+            
             AEP_list.clear()
             aqp_object_list.clear()
             aqp_node_type_list.clear()
