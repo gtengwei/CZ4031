@@ -72,9 +72,30 @@ def build():
     button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False)
     button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False)
 
+    arrow_1 = sg.Button('↑', key='-ARROW_1-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_2 = sg.Button('↑', key='-ARROW_2-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_3 = sg.Button('↑', key='-ARROW_3-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_4 = sg.Button('↑', key='-ARROW_4-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_5 = sg.Button('↑', key='-ARROW_5-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_6 = sg.Button('↑', key='-ARROW_6-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_7 = sg.Button('↑', key='-ARROW_7-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_8 = sg.Button('↑', key='-ARROW_8-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_9 = sg.Button('↑', key='-ARROW_9-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_10 = sg.Button('↑', key='-ARROW_10-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_11 = sg.Button('↑', key='-ARROW_11-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_12 = sg.Button('↑', key='-ARROW_12-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_13 = sg.Button('↑', key='-ARROW_13-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_14 = sg.Button('↑', key='-ARROW_14-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_15 = sg.Button('↑', key='-ARROW_15-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_16 = sg.Button('↑', key='-ARROW_16-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_17 = sg.Button('↑', key='-ARROW_17-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_18 = sg.Button('↑', key='-ARROW_18-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_19 = sg.Button('↑', key='-ARROW_19-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
     button_column = sg.Column([
-                [button_20], [button_19], [button_18], [button_17], [button_16], [button_15], [button_14], [button_13], [button_12], [button_11],
-                [button_10], [button_9], [button_8], [button_7], [button_6], [button_5], [button_4], [button_3], [button_2], [button_1]],
+                [button_20], [arrow_19], [button_19], [arrow_18], [button_18], [arrow_17], [button_17], [arrow_16], [button_16], [arrow_15], 
+                [button_15], [arrow_14], [button_14], [arrow_13], [button_13], [arrow_12], [button_12], [arrow_11], [button_11], [arrow_10],
+                [button_10], [arrow_9], [button_9], [arrow_8], [button_8], [arrow_7], [button_7], [arrow_6], [button_6], [arrow_5],
+                [button_5], [arrow_4], [button_4], [arrow_3], [button_3], [arrow_2], [button_2], [arrow_1], [button_1]],
                 pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='top', scrollable=True, size=(500, 500), key='-BUTTON_COLUMN-')
     # Initial frame to choose database schema
     initial_frame = [
@@ -494,7 +515,9 @@ order by
             for i in range(1,21):
                 window[f'-NODE_{i}-'].update(visible=False)
                 window[f'-NODE_{i}-'].update('')
-            count = 0
+            
+            for i in range(1,20):
+                window[f'-ARROW_{i}-'].update(visible=False)
             qep = db.get_query_result(query)
             if qep == None:
                 return None
@@ -790,12 +813,15 @@ order by
 
             print(len(QEP_nodes))
             QEP_nodes.reverse()
+            reasons.reverse()
             for i in range(len(QEP_nodes)):
                 print(QEP_nodes[i].node_type)
                 window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
                 window[f'-NODE_{20-i}-'].update(visible=True)
                 window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
-            
+
+            for i in range(len(QEP_nodes)-1):
+                window[f'-ARROW_{19-i}-'].update(visible=True)
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
             AEP_list.clear()
