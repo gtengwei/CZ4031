@@ -614,7 +614,7 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
         else:
             text += "Reason: Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
-                    " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + \
+                    " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
                     " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
@@ -685,9 +685,9 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
                 else:
                     text += "Reason: Although the cost of joining " + QEP.hash_cond + " using " + QEP.node_type + "\n"\
-                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining"+ "\n"\
+                            " ," + str(QEP.total_cost) + ", is higher than the cost of joining"+ \
                             " using " + AQP.node_type + " with cost " + str(AQP.total_cost) + "\n"\
-                            " followed by Memoize and Nested Loop, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " followed by Memoize and Nested Loop, \n the total cost of the QEP is " + str(QEP_cost) + \
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             elif QEP.merge_cond:
                 if AQP.hash_cond or AQP.merge_cond:
@@ -700,7 +700,7 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
                     text += "Reason: Although the cost of joining " + QEP.merge_cond + " using " + QEP.node_type + "\n"\
                             " ," + str(QEP.total_cost) + ", is higher than the cost of joining" + "\n"\
                             " using " + AQP.node_type + \
-                            " followed by Memoize and Nested Loop, the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                            " followed by Memoize and Nested Loop, \nthe total cost of the QEP is " + str(QEP_cost) + \
                             " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
             else:
                 text += "Reason: Although the cost of joining using " + QEP.node_type + " ," + str(QEP.total_cost) + "\n"\
@@ -859,11 +859,15 @@ def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
                         break
                 
             if qep_children.node_type == 'Nested Loop':
-                if qep_children.join_filter == aqp_children.join_filter:
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
-                    reasons.append(reason)
-                    QEP_nodes.append(qep_children)
-                    break
+                if aqp_children.join_filter:
+                    if qep_children.join_filter == aqp_children.join_filter:
+                        print("In Nested Loop")
+                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond, qep_children.join_filter)
+                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
+                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        reasons.append(reason)
+                        QEP_nodes.append(qep_children)
+                        break
                 elif aqp_children.recheck_cond:
                     if qep_children.join_filter == aqp_children.recheck_cond:
                         print("In Nested Loop")
