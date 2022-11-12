@@ -72,25 +72,26 @@ def build():
     button_19 = sg.Button('Node19', key='-NODE_19-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node19', visible=False)
     button_20 = sg.Button('Node20', key='-NODE_20-', size=(10, 1), pad=(10, 10), button_color=('white', '#404040'), tooltip='Node20', visible=False)
 
-    arrow_1 = sg.Button('↑', key='-ARROW_1-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_2 = sg.Button('↑', key='-ARROW_2-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_3 = sg.Button('↑', key='-ARROW_3-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_4 = sg.Button('↑', key='-ARROW_4-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_5 = sg.Button('↑', key='-ARROW_5-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_6 = sg.Button('↑', key='-ARROW_6-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_7 = sg.Button('↑', key='-ARROW_7-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_8 = sg.Button('↑', key='-ARROW_8-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_9 = sg.Button('↑', key='-ARROW_9-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_10 = sg.Button('↑', key='-ARROW_10-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_11 = sg.Button('↑', key='-ARROW_11-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_12 = sg.Button('↑', key='-ARROW_12-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_13 = sg.Button('↑', key='-ARROW_13-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_14 = sg.Button('↑', key='-ARROW_14-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_15 = sg.Button('↑', key='-ARROW_15-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_16 = sg.Button('↑', key='-ARROW_16-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_17 = sg.Button('↑', key='-ARROW_17-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_18 = sg.Button('↑', key='-ARROW_18-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
-    arrow_19 = sg.Button('↑', key='-ARROW_19-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False)
+    arrow_1 = sg.Button('↑', key='-ARROW_1-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_2 = sg.Button('↑', key='-ARROW_2-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_3 = sg.Button('↑', key='-ARROW_3-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_4 = sg.Button('↑', key='-ARROW_4-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_5 = sg.Button('↑', key='-ARROW_5-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_6 = sg.Button('↑', key='-ARROW_6-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_7 = sg.Button('↑', key='-ARROW_7-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_8 = sg.Button('↑', key='-ARROW_8-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_9 = sg.Button('↑', key='-ARROW_9-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_10 = sg.Button('↑', key='-ARROW_10-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_11 = sg.Button('↑', key='-ARROW_11-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_12 = sg.Button('↑', key='-ARROW_12-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_13 = sg.Button('↑', key='-ARROW_13-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_14 = sg.Button('↑', key='-ARROW_14-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_15 = sg.Button('↑', key='-ARROW_15-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_16 = sg.Button('↑', key='-ARROW_16-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_17 = sg.Button('↑', key='-ARROW_17-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_18 = sg.Button('↑', key='-ARROW_18-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    arrow_19 = sg.Button('↑', key='-ARROW_19-', size=(2, 1), pad=(20, 10), button_color=('black','white'), visible=False, disabled=True)
+    
     button_column = sg.Column([
                 [button_20], [arrow_19], [button_19], [arrow_18], [button_18], [arrow_17], [button_17], [arrow_16], [button_16], [arrow_15], 
                 [button_15], [arrow_14], [button_14], [arrow_13], [button_13], [arrow_12], [button_12], [arrow_11], [button_11], [arrow_10],
@@ -518,6 +519,7 @@ order by
             
             for i in range(1,20):
                 window[f'-ARROW_{i}-'].update(visible=False)
+            window['-TEXT_AEP_1-' ].update('')
             qep = db.get_query_result(query)
             if qep == None:
                 return None
@@ -799,7 +801,7 @@ order by
             #     testing.append(get_diff(qep_obj, object ))
             # print(testing)
             print(reasons)
-            reasons = list(dict.fromkeys(reasons))
+            #reasons = list(dict.fromkeys(reasons))
             reason_str = ""
             for i in range(len(reasons)):
                 reason_str += reasons[i] + '\n\n'
@@ -812,13 +814,18 @@ order by
             #     window[f'-TEXT_AEP_{i+1}-'].update(result_diff[i])
 
             print(len(QEP_nodes))
+            print(len(reasons))
             QEP_nodes.reverse()
             reasons.reverse()
             for i in range(len(QEP_nodes)):
-                print(QEP_nodes[i].node_type)
-                window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
-                window[f'-NODE_{20-i}-'].update(visible=True)
-                window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                try:
+                    print(QEP_nodes[i].node_type)
+                    print(i)
+                    window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
+                    window[f'-NODE_{20-i}-'].update(visible=True)
+                    window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                except:
+                    break
 
             for i in range(len(QEP_nodes)-1):
                 window[f'-ARROW_{19-i}-'].update(visible=True)
@@ -829,6 +836,7 @@ order by
             result_diff.clear()
             aep_node_type_list.clear()
             aep_node_cost_list.clear()
+            reasons.clear()
             # window['-TEXT_QEP_1-'].update(qep_nlp)
             # window['-TEXT_QEP_2-'].update(qep_nlp)
             # window['-TEXT_QEP_3-'].update(qep_nlp)
