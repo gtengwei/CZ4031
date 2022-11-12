@@ -1,17 +1,14 @@
 import copy
-import random
-import string
 from queue import Queue
 from itertools import chain
 try:
     from itertools import imap
 except ImportError:
-    # Python 3...
     imap=map
 class Node(object):
     def __init__(self, node_type, relation_name, schema, alias, group_key, sort_key, join_type, index_name, 
             hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter, subplan_name, actual_rows,
-            actual_time,description, total_cost):
+            actual_time,description, total_cost, parent_relationship):
         self.node_type = node_type
         self.children = []
         self.relation_name = relation_name
@@ -32,6 +29,7 @@ class Node(object):
         self.actual_time = actual_time
         self.description = description
         self.total_cost = total_cost
+        self.parent_relationship = parent_relationship
 
     def add_children(self, child):
         self.children.append(child)
@@ -73,7 +71,8 @@ def parse_json(data):
         parent_node = q_node.get()
 
         relation_name = schema = alias = group_key = sort_key = join_type = index_name = hash_cond = table_filter \
-            = index_cond = merge_cond = recheck_cond = join_filter = subplan_name = actual_rows = actual_time = description = None
+        = index_cond = merge_cond = recheck_cond = join_filter = subplan_name \
+        = actual_rows = actual_time = description = parent_relationship = None
         total_cost = 0
         if 'Relation Name' in current_plan:
             relation_name = current_plan['Relation Name']
@@ -113,9 +112,13 @@ def parse_json(data):
                 subplan_name = current_plan['Subplan Name']
         if 'Total Cost' in current_plan:
             total_cost = current_plan['Total Cost']
+        
+        if 'Parent Relationship' in current_plan:
+            parent_relationship = current_plan['Parent Relationship']
+
         current_node = Node(current_plan['Node Type'], relation_name, schema, alias, group_key, sort_key, join_type,
                             index_name, hash_cond, table_filter, index_cond, merge_cond, recheck_cond, join_filter,
-                            subplan_name, actual_rows, actual_time, description, total_cost)
+                            subplan_name, actual_rows, actual_time, description, total_cost, parent_relationship)
         node_type_list.append(current_node.node_type)
         node_total_cost += current_node.total_cost
 
@@ -391,7 +394,7 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     global text 
     text = ""
     
-    if QEP.node_type in ['Seq Scan', 'Index Scan', 'Bitmap Heap Scan']:
+    if QEP.node_type in ['Seq Scan', 'Bitmap Heap Scan']:
         if QEP.total_cost < AQP.total_cost:
             text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n" \
                     " The cost of " + QEP.node_type + \
@@ -409,6 +412,45 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
                     " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
                     " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                     " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+    
+    elif QEP.node_type in ['Index Scan', 'Bitmap Index Scan']:
+        if QEP.index_cond:
+            if QEP.total_cost < AQP.total_cost:
+                text += " This join is implemented using Nested Loop with " + QEP.parent_relationship + " " + QEP.node_type+ " because: \n"\
+                        " The cost of " \
+                        " joining " + QEP.index_cond + " using Nested Loop with inner " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                            " which is lower than the cost of using Nested Loop with " + AQP.parent_relationship + " " + AQP.node_type + " which is " + str(AQP.total_cost) + ". "
+            
+            elif QEP.total_cost == AQP.total_cost:
+                text += " This join is implemented using Nested Loop with "+ QEP.parent_relationship + QEP.node_type+ " because: \n"\
+                        " Although the cost of joining " + QEP.index_cond + " using Nested Loop with inner " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                        " which is equal to the cost of using Nested Loop with " + AQP.parent_relationship + " " +  AQP.node_type + " which is " + str(AQP.total_cost) + "\n"\
+                        ", the total cost of the QEP is " + str(QEP_cost) + \
+                        " which is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+            else:
+                text += " This join is implemented using Nested Loop with "+ QEP.parent_relationship + " " + QEP.node_type+ " because: \n"\
+                        " Although the cost of joining " + QEP.index_cond + " using Nested Loop with inner " + QEP.node_type + " is " + str(QEP.total_cost) + "\n"\
+                        " which is higher than the cost of using Nested Loop " + AQP.parent_relationship + " " + AQP.node_type + " which is " + str(AQP.total_cost) + "\n"\
+                        ", the total cost of the QEP is " + str(QEP_cost) + \
+                        " which is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+        else:
+            if QEP.total_cost < AQP.total_cost:
+                text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n" \
+                    " The cost of " + QEP.node_type + \
+                    " , which is " + str(QEP.total_cost) + " is lower than the cost of " + AQP.node_type + "\n"\
+                    " , which is " + str(AQP.total_cost) + ". "
+            elif QEP.total_cost == AQP.total_cost:
+                text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n"\
+                        " Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+                        " ," + str(QEP.total_cost) + ", is equal to the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
+                        " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
+            else:
+                text += " " + QEP.relation_name + " is read using " + QEP.node_type + " because: \n"\
+                        " Although the cost of reading " + QEP.relation_name + " using " + QEP.node_type + "\n"\
+                        " ," + str(QEP.total_cost) + ", is higher than the cost of reading " + QEP.relation_name + " using " + AQP.node_type + "\n"\
+                        " which is " + str(AQP.total_cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
+                        " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
     elif QEP.node_type in ['Hash Join', 'Merge Join', 'Nested Loop']:
         if QEP.total_cost < AQP.total_cost:
@@ -582,149 +624,180 @@ def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
     QEP_children_list = list(iter(QEP))
     AQP_children_list = list(iter(AQP))
     for children in QEP_children_list:
-        print("QEP",children.node_type, children.relation_name, children.hash_cond, children.merge_cond, children.join_filter)
+        print("QEP",children.node_type, children.relation_name, children.hash_cond, children.merge_cond, children.join_filter, children.index_cond)
     
     for children in AQP_children_list:
         print("AQP ",children.node_type, children.relation_name, children.hash_cond, children.merge_cond, children.join_filter, children.recheck_cond)
-    for qep_children in QEP_children_list:
+    for i in range(len(QEP_children_list)):
         #print(qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-        for aqp_children in AQP_children_list:
+        for j in range(len(AQP_children_list)):
             #print(aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter)
-            if qep_children.node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan', 'CTE Scan']:
-                if qep_children.relation_name == aqp_children.relation_name or qep_children.relation_name == aqp_children.index_name:
+            if QEP_children_list[i].node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan', 'CTE Scan']:
+                if QEP_children_list[i].relation_name == AQP_children_list[j].relation_name or QEP_children_list[i].relation_name == AQP_children_list[j].index_name:
                     print("In Scan")
-                    print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                    print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter)
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                    print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                    print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter)
+                    reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                     reasons.append(reason)
-                    QEP_nodes.append(qep_children)
+                    QEP_nodes.append(QEP_children_list[i])
                     break
             
-            if qep_children.node_type == 'Index Scan':
-                if qep_children.index_name == aqp_children.index_name or qep_children.index_name == aqp_children.relation_name:
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
-                    reasons.append(reason)
-                    QEP_nodes.append(qep_children)
-                    break
-            if qep_children.node_type == 'Hash Join':
-                join_cond = ''.join(sorted(qep_children.hash_cond))
+            if QEP_children_list[i].node_type == 'Index Scan':
+                if QEP_children_list[i].index_cond:
+                    print("In Index Scan")
+                    print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond, QEP_children_list[i].index_cond)
+                    print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                    join_cond = ''.join(sorted(QEP_children_list[i].index_cond))
+                    print(join_cond)
+                    if AQP_children_list[j].hash_cond:
+                        if QEP_children_list[i].index_cond == AQP_children_list[j].hash_cond or join_cond == ''.join(sorted(AQP_children_list[j].hash_cond)):
+                            reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
+                            reasons.append(reason)
+                            QEP_nodes.append(QEP_children_list[i])
+                            break
+                    if AQP_children_list[j].merge_cond:
+                        if QEP_children_list[i].index_cond == AQP_children_list[j].merge_cond or join_cond == ''.join(sorted(AQP_children_list[j].merge_cond)):
+                            reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
+                            reasons.append(reason)
+                            QEP_nodes.append(QEP_children_list[i])
+                            break
+                    
+                    if AQP_children_list[j].recheck_cond:
+                        print("In recheck")
+                        if QEP_children_list[i].index_cond == AQP_children_list[j].recheck_cond or join_cond == ''.join(sorted(AQP_children_list[j].recheck_cond)):
+                            QEP_children_list[i].total_cost += int(QEP_children_list[i+1].total_cost)
+                            AQP_children_list[j].total_cost += int(AQP_children_list[j+1].total_cost + AQP_children_list[j+2].total_cost)
+                            reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
+                            reasons.append(reason)
+                            QEP_nodes.append(QEP_children_list[i])
+                            break
+                
+                # if QEP_children_list[i].index_name == AQP_children_list[j].index_name or QEP_children_list[i].index_name == AQP_children_list[j].relation_name:
+                #     print('test')
+                #     reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
+                #     reasons.append(reason)
+                #     QEP_nodes.append(QEP_children_list[i])
+                #     break
+
+            if QEP_children_list[i].node_type == 'Hash Join':
+                join_cond = ''.join(sorted(QEP_children_list[i].hash_cond))
                 print(join_cond)
-                if aqp_children.recheck_cond:
-                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.recheck_cond)):
+                if AQP_children_list[j].recheck_cond:
+                    if join_cond == AQP_children_list[j].hash_cond or join_cond == ''.join(sorted(AQP_children_list[j].recheck_cond)):
                         print("In Hash Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.merge_cond:
-                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.merge_cond)):
+                elif AQP_children_list[j].merge_cond:
+                    if join_cond == AQP_children_list[j].hash_cond or join_cond == ''.join(sorted(AQP_children_list[j].merge_cond)):
                         print("In Hash Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.join_filter:
-                    if join_cond == aqp_children.hash_cond or join_cond == ''.join(sorted(aqp_children.join_filter)):
+                elif AQP_children_list[j].join_filter:
+                    if join_cond == AQP_children_list[j].hash_cond or join_cond == ''.join(sorted(AQP_children_list[j].join_filter)):
                         print("In Hash Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
 
-            if qep_children.node_type == 'Merge Join':
-                join_cond = ''.join(sorted(qep_children.merge_cond))
+            if QEP_children_list[i].node_type == 'Merge Join':
+                join_cond = ''.join(sorted(QEP_children_list[i].merge_cond))
                 print(join_cond)
-                if aqp_children.recheck_cond:
-                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.recheck_cond)):
+                if AQP_children_list[j].recheck_cond:
+                    if join_cond == AQP_children_list[j].merge_cond or join_cond == ''.join(sorted(AQP_children_list[j].recheck_cond)):
                         print("In Merge Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.hash_cond:
-                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.hash_cond)):
+                elif AQP_children_list[j].hash_cond:
+                    if join_cond == AQP_children_list[j].merge_cond or join_cond == ''.join(sorted(AQP_children_list[j].hash_cond)):
                         print("In Merge Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.join_filter:
-                    if join_cond == aqp_children.merge_cond or join_cond == ''.join(sorted(aqp_children.join_filter)):
+                elif AQP_children_list[j].join_filter:
+                    if join_cond == AQP_children_list[j].merge_cond or join_cond == ''.join(sorted(AQP_children_list[j].join_filter)):
                         print("In Merge Join")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
                 
-            if qep_children.node_type == 'Nested Loop':
-                if aqp_children.join_filter:
-                    if qep_children.join_filter == aqp_children.join_filter:
+            if QEP_children_list[i].node_type == 'Nested Loop':
+                if AQP_children_list[j].join_filter:
+                    if QEP_children_list[i].join_filter == AQP_children_list[j].join_filter:
                         print("In Nested Loop")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond, qep_children.join_filter)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].hash_cond, QEP_children_list[i].merge_cond, QEP_children_list[i].join_filter)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].hash_cond, AQP_children_list[j].merge_cond, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.recheck_cond:
-                    if qep_children.join_filter == aqp_children.recheck_cond:
+                elif AQP_children_list[j].recheck_cond:
+                    if QEP_children_list[i].join_filter == AQP_children_list[j].recheck_cond:
                         print("In Nested Loop")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.recheck_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].join_filter)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].join_filter, AQP_children_list[j].recheck_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.hash_cond:
-                    if qep_children.join_filter == aqp_children.hash_cond:
+                elif AQP_children_list[j].hash_cond:
+                    if QEP_children_list[i].join_filter == AQP_children_list[j].hash_cond:
                         print("In Nested Loop")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.hash_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].join_filter)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].join_filter, AQP_children_list[j].hash_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
-                elif aqp_children.merge_cond:
-                    if qep_children.join_filter == aqp_children.merge_cond:
+                elif AQP_children_list[j].merge_cond:
+                    if QEP_children_list[i].join_filter == AQP_children_list[j].merge_cond:
                         print("In Nested Loop")
-                        print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.join_filter)
-                        print("AQP ",aqp_children.node_type, aqp_children.relation_name, aqp_children.join_filter, aqp_children.merge_cond)
-                        reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+                        print("QEP",QEP_children_list[i].node_type, QEP_children_list[i].relation_name, QEP_children_list[i].join_filter)
+                        print("AQP ",AQP_children_list[j].node_type, AQP_children_list[j].relation_name, AQP_children_list[j].join_filter, AQP_children_list[j].merge_cond)
+                        reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                         reasons.append(reason)
-                        QEP_nodes.append(qep_children)
+                        QEP_nodes.append(QEP_children_list[i])
                         break
         
-            if qep_children.node_type == 'Sort':
-                if qep_children.sort_key == aqp_children.sort_key:
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+            if QEP_children_list[i].node_type == 'Sort':
+                if QEP_children_list[i].sort_key == AQP_children_list[j].sort_key:
+                    reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                     reasons.append(reason)
-                    QEP_nodes.append(qep_children)
+                    QEP_nodes.append(QEP_children_list[i])
                     break
             
-            if qep_children.node_type == 'Incremental Sort':
-                if qep_children.sort_key == aqp_children.sort_key:
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+            if QEP_children_list[i].node_type == 'Incremental Sort':
+                if QEP_children_list[i].sort_key == AQP_children_list[j].sort_key:
+                    reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                     reasons.append(reason)
-                    QEP_nodes.append(qep_children)
+                    QEP_nodes.append(QEP_children_list[i])
                     break
             
-            if qep_children.node_type == 'Aggregate':
-                if qep_children.group_key == aqp_children.group_key:
-                    reason = generate_why_cost(qep_children, aqp_children, QEP_cost, AQP_cost)
+            if QEP_children_list[i].node_type == 'Aggregate':
+                if QEP_children_list[i].group_key == AQP_children_list[j].group_key:
+                    reason = generate_why_cost(QEP_children_list[i], AQP_children_list[j], QEP_cost, AQP_cost)
                     reasons.append(reason)
-                    QEP_nodes.append(qep_children)
+                    QEP_nodes.append(QEP_children_list[i])
                     break
 
 
