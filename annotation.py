@@ -118,9 +118,7 @@ def parse_json(data):
                             subplan_name, actual_rows, actual_time, description, total_cost)
         node_type_list.append(current_node.node_type)
         node_total_cost += current_node.total_cost
-        # print("hash cond ", current_node.hash_cond)
-        # print("index cond ", current_node.index_cond)
-        # print("merge cond ", current_node.merge_cond)
+
         if "Limit" == current_node.node_type:
             current_node.plan_rows = current_plan['Plan Rows']
 
@@ -362,11 +360,6 @@ def to_text(node, skip=False):
     steps.append(step)
 
 
-def random_word(length):
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for _ in range(length))
-
-
 def get_text(json_obj):
     global steps, cur_step, cur_table_name, table_subquery_name_pair
     global current_plan_tree
@@ -392,210 +385,7 @@ def clear_cache():
     cur_table_name = 1
     table_subquery_name_pair = {}
 
-def generate_tree(tree, node, _prefix="", _last=True):
-    if _last:
-        tree = "{}`-- {}\n".format(_prefix, node.node_type)
-    else:
-        tree = "{}|-- {}\n".format(_prefix, node.node_type)
 
-    _prefix += "   " if _last else "|  "
-    child_count = len(node.children)
-    for i, child in enumerate(node.children):
-        _last = i == (child_count - 1)
-        tree = tree + generate_tree(tree, child, _prefix, _last)
-    return tree
-
-
-def generate_why(node_a, node_b, num):
-
-    text = ""
-    if node_a.node_type =="Index Scan" and node_b.node_type == "Seq Scan":
-        text = "Reason for Difference " + str(num) + ": " 
-        text += node_a.node_type + " in P1 on relation " + node_a.relation_name + " has now evolved to Sequential Scan in P2 on relation " + node_b.relation_name + ". This is because "
-        if node_b.index_name is None:
-            text += "P1 uses the index, i.e. " + node_a.index_name + ", for selection while P2 doesn't. "
-        if int(node_a.actual_rows) < int(node_b.actual_rows):
-            text += "and the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ", "
-
-        if node_a.index_cond != node_b.table_filter and int(node_a.actual_rows) < int(node_b.actual_rows):
-            text += "This may be due to the selection predicates change from " + (node_a.index_cond if node_a.index_cond is not None else "None ") + " to " + (node_b.table_filter if node_b.table_filter is not None else "None ") + ". "
-        if node_a.total_cost < node_b.total_cost:
-            text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-
-    elif node_b.node_type =="Index Scan" and node_a.node_type == "Seq Scan":
-        text = "Reason for Difference " + str(num) + ": " 
-        text += "Sequential Scan in P1 on relation " + node_a.relation_name + " has now evolved to " + node_b.node_type +" in P2 on relation " + node_b.relation_name + ". This is because "
-        if  node_a.index_name is None:  
-            text += "P2 uses the index, i.e. " + node_b.index_name + ", for selection while P1 doesn't. "
-        elif node_a.index_name is not None:
-            text += "Both P1 and P2 uses the index, which are respectively " + node_a.index_name + " and " + node_b.index_name + ". "
-        if int(node_a.actual_rows) > int(node_b.actual_rows):
-            text += "and the actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-        if node_a.table_filter != node_b.index_cond and int(node_a.actual_rows) > int(node_b.actual_rows):
-            text += "This may be due to the selection predicate changes from " + (node_a.table_filter if node_a.table_filter is not None else "None") + " to " + (node_b.index_cond if node_b.index_cond is not None else "None") + ". "
-        if node_a.total_cost < node_b.total_cost:
-            text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-    elif node_a.node_type and node_b.node_type in ['Merge Join', "Hash Join", "Nested Loop"]:
-        text = "Reason for Difference " + str(num) + ": " 
-        if node_a.node_type == "Nested Loop" and node_b.node_type == "Merge Join":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". This is because "
-            if int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ", "
-            if "=" in node_b.node_type:
-                text += "The join condition uses an equality operator. "
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-            text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently . "
-
-        if node_a.node_type == "Nested Loop" and node_b.node_type == "Hash Join":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". This is because "
-            if int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            if "=" in node_b.node_type:
-                text += "The join condition uses an equality operator. "
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-        if node_a.node_type == "Merge Join" and node_b.node_type == "Nested Loop":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". This is because "
-            if int(node_a.actual_rows) > int(node_b.actual_rows):
-                text += "the actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            elif int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-                text += node_b.node_type + " joins are used  if the join condition does not use the equality operator"
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-            
-        if node_a.node_type == "Merge Join" and node_b.node_type == "Hash Join":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". " 
-            if int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "This is because the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            if int(node_a.actual_rows) > int(node_b.actual_rows):
-                text += "The actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-            text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently . "
-
-        if node_a.node_type == "Hash Join" and node_b.node_type == "Nested Loop":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". This is because "
-            if int(node_a.actual_rows) > int(node_b.actual_rows):
-                text += "the actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            elif int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "the actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-                text += node_b.node_type + " joins are used  if the join condition does not use the equality operator"
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-
-        if node_a.node_type == "Hash Join" and node_b.node_type == "Merge Join":
-            text += node_a.node_type + " in P1 on has now evolved to " + node_b.node_type +" in P2 on relation " + ". " 
-            if int(node_a.actual_rows) < int(node_b.actual_rows):
-                text += "The actual row number increases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            if int(node_a.actual_rows) > int(node_b.actual_rows):
-                text += "The actual row number decreases from " + str(node_a.actual_rows) + " to " + str(node_b.actual_rows) + ". "
-            if node_a.total_cost < node_b.total_cost:
-                text += "and the cost increases from " + str(node_a.total_cost) + " to " + str(node_b.total_cost) + ". "
-            text += "The both side of the Join operator of P2 can be sorted on the join condition efficiently. "
-
-    return text
-
-
-def modify_text(str):
-    str = str.replace('perform ', '')
-    return str
-
-def check_children(nodeA, nodeB, difference, reasons):
-    global num
-    childrenA = nodeA.children
-    childrenB = nodeB.children
-    children_no_A = len(childrenA)
-    children_no_B = len(childrenB)
-
-    if nodeA.node_type == nodeB.node_type and children_no_A == children_no_B:
-        if children_no_A != 0:
-            for i in range(len(childrenA)):
-                check_children(childrenA[i], childrenB[i],  difference, reasons)
-
-    else:
-        if nodeA.node_type == 'Hash' or nodeA.node_type == 'Sort':
-            text = 'Reason ' + \
-                str(num) + ' : ' + nodeA.children[0].description + \
-                ' as compared to AEP with ' + nodeB.description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA.children[0], nodeB, num)
-            reasons.append(reason)
-            num += 1
-
-        elif nodeB.node_type == 'Hash' or nodeB.node_type == 'Sort':
-            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
-                ' as compared to AEP with ' + nodeB.children[0].description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA, nodeB.children[0], num)
-            reasons.append(reason)
-            num += 1
-
-        elif nodeA.node_type == 'Hash Join' or nodeA.node_type == 'Merge Join' or nodeA.node_type == 'Nested Loop':
-            text = 'Reason ' + str(num) + ' : ' + nodeA.children[0].description + \
-                ' as compared to AEP with ' + nodeB.children[0].description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA.children[0], nodeB.children[0], num)
-            reasons.append(reason)
-            num += 1
-        
-        elif nodeB.node_type == 'Hash Join' or nodeB.node_type == 'Merge Join' or nodeB.node_type == 'Nested Loop':
-            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
-                ' as compared to AEP with ' + nodeB.children[0].description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA, nodeB.children[0], num)
-            reasons.append(reason)
-            num += 1
-        
-        elif nodeA.node_type == 'Seq Scan' or nodeA.node_type == 'Index Scan' or nodeA.node_type == 'Bitmap Heap Scan':
-            text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
-                ' as compared to AEP with ' + nodeB.description
-            text = modify_text(text)
-            difference.append(text)
-            reason = generate_why(nodeA, nodeB, num)
-            reasons.append(reason)
-            num += 1
-        
-        elif nodeB.node_type == 'Seq Scan' or nodeB.node_type == 'Index Scan' or nodeB.node_type == 'Bitmap Heap Scan':
-            try:
-                text = 'Reason ' + str(num) + ' : ' + nodeA.description + \
-                    ' as compared to AEP with ' + nodeB.description
-                text = modify_text(text)
-                difference.append(text)
-                reason = generate_why(nodeA, nodeB, num)
-                reasons.append(reason)
-                num += 1
-            except:
-                pass
-        elif 'Gather' in nodeA.node_type:
-            check_children(childrenA[0], nodeB, difference, reasons)
-
-        elif 'Gather' in nodeB.node_type:
-            check_children(nodeA, childrenB[0],  difference, reasons)
-        else:
-            try:
-                text = 'Reason ' + \
-                    str(num) + ' : ' + nodeA.description + \
-                    ' as compared to AEP with ' + nodeB.description
-                text = modify_text(text)
-                difference.append(text)
-                reason = generate_why(nodeA, nodeB, num)
-                reasons.append(reason)
-            except:
-                pass
-            num += 1
-
-        if children_no_A == children_no_B:
-            if children_no_A == 1:
-                check_children(childrenA[0], childrenB[0], difference, reasons)
-            if children_no_A == 2:
-                check_children(childrenA[0], childrenB[0], difference, reasons)
-                check_children(childrenA[1], childrenB[1],  difference, reasons)
 
 def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     global text 
@@ -788,14 +578,6 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     return text
 
 def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
-    # QEP_children = QEP.children
-    # AQP_children = AQP.children
-    # QEP_children_no = len(QEP_children)
-    # AQP_children_no = len(AQP_children)
-    # print(QEP.node_type, AQP.node_type)
-    # print(QEP.relation_name, AQP.relation_name)
-    # print(QEP.hash_cond, AQP.hash_cond)
-    # print(QEP.merge_cond, AQP.merge_cond)
 
     QEP_children_list = list(iter(QEP))
     AQP_children_list = list(iter(AQP))
@@ -945,62 +727,6 @@ def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
                     QEP_nodes.append(qep_children)
                     break
 
-    # if QEP_children_no == AQP_children_no and QEP.node_type == AQP.node_type:
-    #     if QEP_children_no != 0:
-    #         for i in range(len(QEP_children)):
-    #             check_why_children(QEP_children[i], AQP_children[i], reasons, QEP_cost, AQP_cost)
-    
-    # else:
-    #     if QEP.node_type == 'Hash' or QEP.node_type == 'Sort':
-    #         reason = generate_why_cost(QEP.children[0], AQP, QEP_cost, AQP_cost)
-    #         reasons.append(reason)
-
-    #     elif AQP.node_type == 'Hash' or AQP.node_type == 'Sort':
-    #         reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
-    #         reasons.append(reason)
-
-    #     elif QEP.node_type == 'Hash Join' or QEP.node_type == 'Merge Join' or QEP.node_type == 'Nested Loop':
-    #         if QEP_children_no == 1 and AQP_children_no == 1:
-    #             reason = generate_why_cost(QEP.children[0], AQP.children[0], QEP_cost, AQP_cost)
-    #             reasons.append(reason)
-    #         else:
-    #             pass
-
-    #     elif QEP.node_type == 'Seq Scan' or QEP.node_type == 'Index Scan' or QEP.node_type == 'Bitmap Heap Scan':
-    #         if QEP.relation_name == AQP.relation_name:
-    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-    #             reasons.append(reason)
-
-    #     elif AQP.node_type == 'Hash Join' or AQP.node_type == 'Merge Join' or AQP.node_type == 'Nested Loop':
-    #         reason = generate_why_cost(QEP, AQP.children[0], QEP_cost, AQP_cost)
-    #         reasons.append(reason)
-        
-        
-    #     elif AQP.node_type == 'Seq Scan' or AQP.node_type == 'Index Scan' or AQP.node_type == 'Bitmap Heap Scan':
-    #         try:
-    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-    #             reasons.append(reason)
-    #         except:
-    #             pass
-    #     elif 'Gather' in QEP.node_type:
-    #         check_why_children(QEP_children[0], AQP, reasons, QEP_cost, AQP_cost)
-
-    #     elif 'Gather' in AQP.node_type:
-    #         check_why_children(QEP, AQP_children[0], reasons, QEP_cost, AQP_cost)
-    #     else:
-    #         try:
-    #             reason = generate_why_cost(QEP, AQP, QEP_cost, AQP_cost)
-    #             reasons.append(reason)
-    #         except:
-    #             pass
-            
-
-    #     if QEP_children_no == AQP_children_no:
-    #         if QEP_children_no == 1:
-    #             check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
-    #         if QEP_children_no == 2:
-    #             check_why_children(QEP_children[0], AQP_children[0], reasons, QEP_cost, AQP_cost)
-    #             check_why_children(QEP_children[1], AQP_children[1], reasons, QEP_cost, AQP_cost)
 
 def get_why_cost(QEP, AQP, QEP_cost, AQP_cost):
 
@@ -1013,37 +739,8 @@ def get_why_cost(QEP, AQP, QEP_cost, AQP_cost):
     QEP_nodes = []
     check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost)
 
-
-    # reason_str = ""
-    # for i in range (len(reasons)):
-    #     reason_str = reason_str + reasons[i] + "\n\n"
-
     return reasons, QEP_nodes
-
 
 def get_total_cost(json_obj):
     node = parse_json(json_obj)[0]
     return node.total_cost
-
-def get_diff(json_obj_A, json_obj_B):
-    global num
-    head_node_a = parse_json(json_obj_A)[0]
-    clear_cache()
-    to_text(head_node_a)
-
-    head_node_b = parse_json(json_obj_B)[0]
-    clear_cache()
-    to_text(head_node_b)
-
-    num=1
-    difference = []
-    reasons = []
-    check_children(head_node_a, head_node_b, difference, reasons)
-    diff_str = ""
-    for i in range (len(reasons)):
-        diff_str = diff_str + difference[i] + "\n\n"
-        if reasons[i] != "":
-            diff_str = diff_str + reasons[i] + "\n" 
-        if i != len(reasons)-1:
-            diff_str = diff_str + "-"*200 + "\n"
-    return diff_str

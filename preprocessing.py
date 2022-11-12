@@ -12,14 +12,6 @@ class Database:
     
 
     def get_query_result(self, query):
-        #print("Query:", query)
-        
-            # host="localhost",
-            # database="TCP-H",
-            # user="postgres",
-            # password="1234")
-
-        #cur = conn.cursor()
         try:
             self.cur.execute(query)
             rows = self.cur.fetchall()
