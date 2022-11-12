@@ -712,6 +712,13 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
         return text
 
     elif QEP.node_type in ['Sort', 'Incremental Sort']:
+        print('in sort')
+        for i in range(len(QEP.sort_key)):
+            if '::' in (QEP.sort_key)[i]:
+                (QEP.sort_key).remove((QEP.sort_key)[i])
+                break
+
+        print(QEP.sort_key)
         if QEP.total_cost < AQP.total_cost:
             text += "Reason: This sort is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
                     " sorting " + ''.join(QEP.sort_key) + " is " + str(QEP.total_cost) + "\n"\
@@ -780,7 +787,7 @@ def check_why_children(QEP, AQP, reasons, QEP_nodes, QEP_cost, AQP_cost):
         #print(qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
         for aqp_children in AQP_children_list:
             #print(aqp_children.node_type, aqp_children.relation_name, aqp_children.hash_cond, aqp_children.merge_cond, aqp_children.join_filter)
-            if qep_children.node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan']:
+            if qep_children.node_type in ['Seq Scan', 'Bitmap Heap Scan', 'Bitmap Index Scan', 'CTE Scan']:
                 if qep_children.relation_name == aqp_children.relation_name or qep_children.relation_name == aqp_children.index_name:
                     print("In Scan")
                     print("QEP",qep_children.node_type, qep_children.relation_name, qep_children.hash_cond, qep_children.merge_cond)
