@@ -1,6 +1,5 @@
 from winreg import QueryInfoKey
 import PySimpleGUI as sg
-from PIL import Image, ImageTk
 from preprocessing import *
 from annotation import *
 import threading
@@ -22,12 +21,6 @@ query = ''
 def blank_frame():
     return sg.Frame("", [[]], pad=(5, 3), expand_x=True, expand_y=True, background_color='#404040', border_width=0)
 
-# Resize image generated for QEP to fit in the frame
-def resize_image(image, width, height):
-    image = Image.open(image)
-    image = image.resize((width, height), resample = Image.Resampling.LANCZOS)
-    return image
-    
 # Move window to the center of the screen
 def move_center(window):
     print(window.current_location())
@@ -389,7 +382,6 @@ order by
     aep_node_type_list = []
     aep_node_cost_list = []
     aep_object_list = []
-    result_diff = []
     # Display window
     while True:
         event, values = window.read()
@@ -523,14 +515,18 @@ order by
             QEP_nodes.reverse()
             reasons.reverse()
             for i in range(len(QEP_nodes)):
-                try:
                     print(QEP_nodes[i].node_type)
                     print(i)
-                    window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
-                    window[f'-NODE_{20-i}-'].update(visible=True)
-                    window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
-                except:
-                    break
+                    if QEP_nodes[i].node_type == 'Index Scan' and QEP_nodes[i].index_cond:
+                        window[f'-NODE_{20-i}-'].update('Nested Loop')
+                        window[f'-NODE_{20-i}-'].update(visible=True)
+                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+                    
+                    else:
+                        window[f'-NODE_{20-i}-'].update(QEP_nodes[i].node_type)
+                        window[f'-NODE_{20-i}-'].update(visible=True)
+                        window[f'-NODE_{20-i}-'].set_tooltip(reasons[i])
+ 
 
             for i in range(len(QEP_nodes)-1):
                 window[f'-ARROW_{19-i}-'].update(visible=True)
@@ -539,7 +535,6 @@ order by
             window['-BUTTON_COLUMN-'].contents_changed()
             AEP_list.clear()
             aep_object_list.clear()
-            result_diff.clear()
             aep_node_type_list.clear()
             aep_node_cost_list.clear()
             reasons.clear()
@@ -567,11 +562,3 @@ def get_description(json_obj):
     for description in descriptions:
         result = result + description + "\n"
     return result
-
-def get_tree(json_obj):
-    head = parse_json(json_obj)[0]
-    return generate_tree("", head)
-
-def get_difference(json_object_A, json_object_B):
-        diff = get_diff(json_object_A, json_object_B)
-        return diff

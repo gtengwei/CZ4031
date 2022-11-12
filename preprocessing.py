@@ -10,7 +10,6 @@ class Database:
         self.connection = psycopg2.connect(host=self.host, database=self.database, user=self.user, password=self.password)
         self.cur = self.connection.cursor()
     
-
     def get_query_result(self, query):
         try:
             self.cur.execute(query)
