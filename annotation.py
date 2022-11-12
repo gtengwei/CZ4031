@@ -713,15 +713,16 @@ def generate_why_cost(QEP, AQP, QEP_cost, AQP_cost):
 
     elif QEP.node_type in ['Sort', 'Incremental Sort']:
         print('in sort')
+        print(QEP.sort_key)
         for i in range(len(QEP.sort_key)):
             if '::' in (QEP.sort_key)[i]:
-                (QEP.sort_key).remove((QEP.sort_key)[i])
+                (QEP.sort_key)[i] = ((QEP.sort_key)[i]).replace('::', '. ')
                 break
 
         print(QEP.sort_key)
         if QEP.total_cost < AQP.total_cost:
             text += "Reason: This sort is implemented using " + QEP.node_type + " because the cost of "+ QEP.node_type + "\n"\
-                    " sorting " + ''.join(QEP.sort_key) + " is " + str(QEP.total_cost) + "\n"\
+                    " sorting " + ' '.join(QEP.sort_key) + " is " + str(QEP.total_cost) + "\n"\
                     " which is less than the cost " + " of using " + AQP.node_type + \
                     " which is " + str(AQP.total_cost) + ". "
         elif QEP.total_cost == AQP.total_cost:
