@@ -130,10 +130,13 @@ def build():
     return sg.Window('CZ4031 Project 2', layout, margins = margins, finalize=True, resizable=True)
 
 # Main function
-def interface(host,database,user,password):
+def interface():
     window = build()
     popup_win = None
-    db = Database(host,database,user,password)
+    db_config = get_json('config.json')
+    print(db_config['db'])
+    db_config = db_config['db']
+    db = Database(db_config['host'], db_config['port'],db_config['database'], db_config['user'], db_config['password'])
     AEP_list = []
     # Query dictionary to store query
     query_dict = {
