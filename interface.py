@@ -40,6 +40,13 @@ def popup(message):
     window = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True, finalize=True)
     return window
 
+# Connect to the database via the credentials in config.json
+def connect_to_db():
+    config = get_json()
+    db_config = config['db']
+    db = Database(db_config['host'], db_config['port'],db_config['database'], db_config['user'], db_config['password'])
+    return db
+
 # Build the GUI
 def build():
     
@@ -112,15 +119,18 @@ def build():
                 [button_10], [arrow_9], [button_9], [arrow_8], [button_8], [arrow_7], [button_7], [arrow_6], [button_6], [arrow_5],
                 [button_5], [arrow_4], [button_4], [arrow_3], [button_3], [arrow_2], [button_2], [arrow_1], [button_1]],
                 pad=(0, 0), expand_x=True, expand_y=True, element_justification='center', vertical_alignment='top', scrollable=True, vertical_scroll_only=True, size=(500, 500), key='-BUTTON_COLUMN-')
+    
     # Initial frame to choose database schema
     initial_frame = [
-        [sg.Text('Choose your database schema')],
         [sg.InputCombo(('TPC-H', 'IMDB'), size=(20, 1), key='-SCHEMA-')],
         [sg.Button('Select Database', key='-SELECT_SCHEMA-')]
     ]
+
+    # Frame to display NLP QEP description
     frame_display_QEP_description = [
         [sg.Multiline(key='-TEXT_QEP-', size=(60, 18))]
     ]
+
     # Frame to choose query
     frame_select_query = [
         [sg.Text('Current database schema')],
@@ -133,7 +143,7 @@ def build():
         [sg.Frame("QEP Step-By-Step NLP:", frame_display_QEP_description)]
     ]
 
-
+    # Frame to display visualise plan
     frame_display_visual_QEP = [
         [button_column]    
     ]
@@ -151,15 +161,18 @@ def build():
     margins = (2, 2)
     return sg.Window('CZ4031 Project 2', layout, margins = margins, finalize=True, resizable=True)
 
-# Main function
+# Main function to run the GUI
 def interface():
+    # Create the window
     window = build()
     popup_win = None
-    db_config = get_json('config.json')
-    print(db_config['db'])
-    db_config = db_config['db']
-    db = Database(db_config['host'], db_config['port'],db_config['database'], db_config['user'], db_config['password'])
-    AEP_list = []
+
+    # Connect to the database
+    db = connect_to_db()
+
+    # List to store the AQPs
+    AQP_list = []
+    
     # Query dictionary to store query
     query_dict = {
     'Query1': '''select 
@@ -404,13 +417,17 @@ order by
     set_bitmap_scan_off = 'SET enable_bitmapscan to off;'
     set_bitmap_scan_on = 'SET enable_bitmapscan to on;'
 
+    # List of AQP node types
     aqp_node_type_list = []
+
+    # List of total cost of each AQP
     aqp_node_cost_list = []
+
+    # List of AQP json format output
     aqp_object_list = []
     # Display window
     while True:
         event, values = window.read()
-        print(event)
         # End program if user closes window or clicks cancel
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
@@ -427,11 +444,10 @@ order by
             window['-TEXT_QUERY-'].update(query_dict[values['-QUERY-']])
 
 
+        # Close the popup window after query is completed
         if event == 'EXECUTION DONE':
             popup_win.close()
             popup_win = None
-        # Move window to center of screen
-        # move_center(window)
 
 
         # Query to be executed in PostgreSQL
@@ -439,6 +455,83 @@ order by
         query = values['-TEXT_QUERY-']
         query = 'EXPLAIN (COSTS, VERBOSE, BUFFERS, FORMAT JSON) ' + query
         
+       # If user clicks on the execute button, then execute the query 
+        # and enable/disable planner options based on QEP
+        if event == 'Submit':
+            if query == 'EXPLAIN (COSTS, VERBOSE, BUFFERS, FORMAT JSON) ':
+                continue
+
+            popup_win = popup('Please wait while the query is being executed...')
+            window.force_focus()
+            
+            # Parallel thread to execute the query on top of the pop up loading
+            threading.Thread(target= get_QEP_and_AEP, args=(query,)).start()
+
+        # Execute the query to get the QEP and AQP
+        def get_QEP_and_AEP(query):
+            
+            # Reset the visualization frame and QEP NLP Description frame on every query execution
+            reset_visualisation()
+            try:
+                qep = db.get_query_result(query)
+            
+            except Exception as e:
+                return
+            if qep == None:
+                return None
+            
+            # Parse json format query plan to parse_json
+            parse_json_obj = parse_json(qep)
+
+            # Get the distinct node types in the QEP
+            qep_node_type_list = parse_json_obj[1]
+
+            # Get the total cost of QEP
+            qep_total_cost = parse_json_obj[2]
+
+            # Get the NLP description of QEP
+            qep_nlp = get_description(qep)
+
+            # Disable planner methods based on QEP
+            planner_method_off(qep_node_type_list)
+
+
+            # AQP query to be executed in PostgreSQL based on disabled planner methods
+            aqp = db.get_query_result(query)
+
+            # Parse json format query plan to parse_json
+            parse_json_obj = parse_json(aqp)
+
+            # Get the distinct node types in the AQP
+            aqp_node_type_list.append(parse_json_obj[1])
+
+            # Get the total cost of AQP
+            aqp_node_cost_list.append(parse_json_obj[2])
+
+            # Append json format query plan to aqp_object_list
+            aqp_object_list.append(aqp)
+
+            # Reset planner method configurations to default
+            planner_method_on()
+
+            # Generate reasons for how each node is chosen in QEP as compared to AQP
+            for i in range(len(aqp_object_list)):
+                reasons, QEP_nodes = get_reason(qep, aqp_object_list[i], qep_total_cost, aqp_node_cost_list[i])
+
+            # Draw the visualization plan
+            visualise_plan(qep_nlp, reasons, QEP_nodes)
+
+            # Reset the aqp_object_list, aqp_node_cost_list and aqp_node_type_list for next query execution
+            AQP_list.clear()
+            aqp_object_list.clear()
+            aqp_node_type_list.clear()
+            aqp_node_cost_list.clear()
+            reasons.clear()
+
+            # Notify pop up window that query execution is complete
+            window.write_event_value('EXECUTION DONE', None)
+
+         # Reset the visualization frame and QEP NLP Description frame
         def reset_visualisation():
             window['-TEXT_QEP-' ].update('')
             for i in range(1,31):
@@ -448,13 +541,14 @@ order by
             for i in range(1,30):
                 window[f'-ARROW_{i}-'].update(visible=False)
         
+        # Draw the visualization plan
         def visualise_plan(qep_nlp, reasons, QEP_nodes):
             window['-TEXT_QEP-'].update(qep_nlp)
             QEP_nodes.reverse()
             reasons.reverse()
+
+            # Draw the nodes corresponding to the QEP nodes
             for i in range(len(QEP_nodes)):
-                    print(QEP_nodes[i].node_type)
-                    print(i)
                     if QEP_nodes[i].node_type == 'Index Scan' and QEP_nodes[i].index_cond:
                         window[f'-NODE_{30-i}-'].update('Nested Loop')
                         window[f'-NODE_{30-i}-'].update(visible=True)
@@ -465,12 +559,14 @@ order by
                         window[f'-NODE_{30-i}-'].update(visible=True)
                         window[f'-NODE_{30-i}-'].set_tooltip(reasons[i])
  
-
+            # Draw the arrows corresponding to the QEP nodes
             for i in range(len(QEP_nodes)-1):
                 window[f'-ARROW_{29-i}-'].update(visible=True)
+                
             window.refresh()
             window['-BUTTON_COLUMN-'].contents_changed()
         
+        # Planner method configurations to be disabled based on QEP returned
         def planner_method_off(qep_node_type_list):
             for node in set(qep_node_type_list):
                 if node == 'Seq Scan':
@@ -497,10 +593,7 @@ order by
                 if node == 'Bitmap Heap Scan':
                     db.execute_query(set_bitmap_scan_off)
                 
-                # if 'Hash Join' in node or 'Merge Join' in node or 'Nested Loop' in node:
-                #     db.execute_query(set_hash_join_off)
-                #     # db.execute_query(set_merge_join_off)
-                #     # db.execute_query(set_nested_loop_off)
+        # Reset planner method configurations to default
         def planner_method_on():
             db.execute_query(set_seq_on)
             db.execute_query(set_index_scan_on)
@@ -510,101 +603,14 @@ order by
             db.execute_query(set_gather_merge_on)
             db.execute_query(set_nested_loop_on)
             db.execute_query(set_bitmap_scan_on)
-        def get_QEP_and_AEP(query):
-        
-            reset_visualisation()
-            try:
-                qep = db.get_query_result(query)
-            
-            except Exception as e:
-                print('test')
-                print(e)
-                sg.popup_error(e)
-                return
-            if qep == None:
-                return None
-            print(qep)
-            #qep_obj = json.loads(json.dumps(qep))
-            parse_json_obj = parse_json(qep)
-
-            # Get the distinct node types in the QEP
-            qep_node_type_list = parse_json_obj[1]
-
-            # Get the cost of each node type in the QEP
-            qep_total_cost = parse_json_obj[2]
-            print(qep_node_type_list)
-            qep_nlp = get_description(qep)
-
-            print(qep_total_cost)
-            planner_method_off(qep_node_type_list)
-
-            aqp = db.get_query_result(query)
-            print(aqp)
-            #result_AEP_obj = json.loads(json.dumps(result_AEP))
-            parse_json_obj = parse_json(aqp)
-
-            # Get the distinct node types in the AEP
-            aqp_node_type_list.append(parse_json_obj[1])
-
-            # Get the cost of each node type in the AEP
-            aqp_node_cost_list.append(parse_json_obj[2])
-
-            aqp_object_list.append(aqp)
-
-            planner_method_on()
-
-            
-            print(AEP_list)
-            print(aqp_node_type_list)
-            print(qep_node_type_list)
-            print(aqp_node_cost_list)
-  
-
-            for i in range(len(aqp_object_list)):
-                reasons, QEP_nodes = get_reason(qep, aqp_object_list[i], qep_total_cost, aqp_node_cost_list[i])
-
-            
-            print(reasons)
-            # reason_str = ""
-            # for i in range(len(reasons)):
-            #     reason_str += reasons[i] + '\n\n'
-  
-            
-    
-            print(len(QEP_nodes))
-            print(len(reasons))
-            visualise_plan(qep_nlp, reasons, QEP_nodes)
-
-            
-            AEP_list.clear()
-            aqp_object_list.clear()
-            aqp_node_type_list.clear()
-            aqp_node_cost_list.clear()
-            reasons.clear()
-
-            window.write_event_value('EXECUTION DONE', None)
-
-        # If user clicks on the execute button, then execute the query 
-        # and enable/disable planner options based on QEP
-        if event == 'Submit':
-            print(query)
-            if query == 'EXPLAIN (COSTS, VERBOSE, BUFFERS, FORMAT JSON) ':
-                print('test')
-                continue
-            popup_win = popup('Please wait while the query is being executed...')
-            window.force_focus()
-            
-            # CHOSEN QEP
-            threading.Thread(target= get_QEP_and_AEP, args=(query,)).start()
-
-        # print(schema)
     window.close()
 
 
 
+# Get the description of the QEP
 def get_description(json_obj):
     descriptions = get_text(json_obj)
     result = ""
     for description in descriptions:
-        result = result + description + "\n"
+        result = result + description + "\n\n"
     return result

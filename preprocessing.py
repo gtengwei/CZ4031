@@ -1,6 +1,7 @@
 import psycopg2
 import json
 
+# Database Class to connect to the database
 class Database:
     def __init__(self, host, port, database, user, password):
         self.host = host
@@ -12,7 +13,7 @@ class Database:
         self.cur = self.connection.cursor()
     
     
-
+    # Function to return the json format query plan
     def get_query_result(self, query):
         try:
             self.cur.execute(query)
@@ -23,16 +24,14 @@ class Database:
             print(e)
             return None
 
+    # Function to configure the planner method configurations
     def execute_query(self, query):
-        print("Query:", query)
-
         self.cur.execute(query)
         self.connection.commit()
-        print("Query executed successfully")
 
-def get_json(json_file):
+# Function to load the credentials of PostgreSQL server from the json file
+def get_json():
         """ read json content """
         with open("config.json", 'r') as f:
             config = json.loads(f.read())
-            print(config)
             return config
