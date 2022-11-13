@@ -513,7 +513,6 @@ order by
 
             # Reset planner method configurations to default
             planner_method_on()
-
             # Generate reasons for how each node is chosen in QEP as compared to AQP
             for i in range(len(aqp_object_list)):
                 reasons, QEP_nodes = get_reason(qep, aqp_object_list[i], qep_total_cost, aqp_node_cost_list[i])

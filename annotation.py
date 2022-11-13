@@ -648,8 +648,10 @@ def generate_reason(QEP, AQP, QEP_cost, AQP_cost):
                         " which is " + str(AQP.cost) + ", the total cost of the QEP is " + str(QEP_cost) + "\n"\
                         " is lower than the total cost of the AQP, which is " + str(AQP_cost) + ". "
     
-    elif QEP.node_type in ['Gather, Aggregate']:
-        return text
+    elif QEP.node_type in ['Gather','Aggregate', 'Gather Merge']:
+        text += " " + QEP.node_type + " is used because: \n"\
+                " The cost of using " + QEP.node_type + " is " + str(QEP.cost) + "\n"\
+                " and there are no other alternatives to implement this query. "
 
     # If the operator is a sort, check the sort keys
     elif QEP.node_type in ['Sort', 'Incremental Sort']:
@@ -908,6 +910,11 @@ def compare_node(QEP_head, AQP_head, reasons, QEP_nodes, QEP_cost, AQP_cost):
                     QEP_nodes.append(QEP_node_list[i])
                     break
             
+            if QEP_node_list[i].node_type == 'Gather':
+                reason = generate_reason(QEP_node_list[i], AQP_node_list[j], QEP_cost, AQP_cost)
+                reasons.append(reason)
+                QEP_nodes.append(QEP_node_list[i])
+                break
 
 
 # Function to get the reasons for the operator choice in the QEP
