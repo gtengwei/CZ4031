@@ -42,10 +42,14 @@ def popup(message):
 
 # Connect to the database via the credentials in config.json
 def connect_to_db():
-    config = get_json()
-    db_config = config['db']
-    db = Database(db_config['host'], db_config['port'],db_config['database'], db_config['user'], db_config['password'])
-    return db
+    try:
+        config = get_json()
+        db_config = config['db']
+        db = Database(db_config['host'], db_config['port'],db_config['database'], db_config['user'], db_config['password'])
+        return db
+    except Exception as e:
+        print(e)
+        return None
 
 # Build the GUI
 def build():

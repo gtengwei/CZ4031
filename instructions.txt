@@ -1,0 +1,62 @@
+We assume that you would have set up the postgresql server and tph-h database in this instruction manual.
+If you have not, please follow the lab manual provided on the course site to do so.
+
+1. Unzip the download zipped file to your preferred destination
+
+2. Using the command prompt terminal, cd to the directory you have our source code in:
+i.e for example, my directory is C:\Users\tengwei\Desktop\CZ4031\Group24_source_code 
+
+Hence, i would input the following command into the command prompt terminal:
+cd C:\Users\tengwei\Desktop\CZ4031\Group24_source_code
+
+3. Tnstall the latest version of the required listed packages by executing the following command:
+pip install -r requirements.txt 
+
+4. Configure attributes in the config.json before running step 5
+Change the values in the pre-defined config.json file to your local postgreSQL server configuration
+Please ensure the config.json is correct, as the application will not open unless it can connect to your local PostgreSQL server
+
+5. Run the application by executing the following command:
+python project.py
+
+
+User Manual
+
+After following the steps mentioned previously, we would like to walk you through our application.
+
+1. Upon launching the program, the application would ask for the type of database you want.
+As we are only using TCP-H, press the arrow down button, choose TCP-H and press the 'Select Database' button.
+
+2. Upon choosing the database, you would be greeted with the second interface asking for your input query.
+For convenience, we have preloaded 8 queries from the TCP-H file source for you to choose.
+
+To choose the preloaded queries, press the arrow down button and select the desired query.
+Next, press the 'Select Query' button to load and display the query.
+
+If you choose to input custom query, you can type in the textbox provided under 'Please input your SQL query'.
+Please do not include EXPLAIN in your custom input query.
+
+3. After inputting the query, press the 'Submit' button to automatically produce the QEP, AQP, nodes and annotations.
+
+4. A loading pop-up will appear after your press the 'Submit' button, and will automatically disppear after the execution of the query.
+
+5. The step-by-step NLP description of the QEP will be displayed in the textbox under 'QEP Step-By-Step NLP'.
+The nodes corresponding to the SQL conditions will also be generated in the frame 'QEP Visualise Plan'
+
+6. To display the generated annotations, hover over the nodes to display the annotation for the specific node.
+If there are alot of nodes generated, please use the scrollbar at the side of the frame 
+to scroll up or down to display the nodes you wish to see.
+P.S If the annotation does not appear on the first hover, please move your cursor away from the node and try again.
+P.S If you are using 2 screens, please shift the window to the bigger screen,
+as the application takes the bigger screen as the main window
+
+7. To try any other queries, simply input the new query into the textbox provided under 'Please input your SQL query'
+and overwrite the previous query.
+
+The system will automatically reset the nodes and annotations for the new query.
+
+Enjoy using the application!
+
+
+
+
